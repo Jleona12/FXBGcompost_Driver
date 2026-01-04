@@ -5,6 +5,11 @@ import { StopWithCustomer } from '@/lib/types'
 import ContactWidget from './ContactWidget'
 import PickupLogger from './PickupLogger'
 import { getMapLink } from '@/lib/utils'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { MapPin, AlertTriangle } from 'lucide-react'
 
 interface StopCardProps {
   stop: StopWithCustomer
@@ -15,11 +20,13 @@ export default function StopCard({ stop }: StopCardProps) {
   const mapLink = getMapLink(stop.customer.address)
 
   return (
-    <div className="card card-green p-4">
-      <div className="flex gap-4">
+    <Card className="border-l-4 border-l-fxbg-green bg-green-50/30 dark:bg-green-950/10">
+      <div className="flex gap-4 p-4">
         {/* Stop Order Badge */}
-        <div className="stop-order">
-          {stop.stop_order}
+        <div className="flex-shrink-0">
+          <div className="w-12 h-12 rounded-full bg-fxbg-green text-white flex items-center justify-center text-ios-title-3 font-bold shadow-md">
+            {stop.stop_order}
+          </div>
         </div>
 
         {/* Stop Details */}
@@ -40,20 +47,9 @@ export default function StopCard({ stop }: StopCardProps) {
                   href={mapLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-ios-footnote text-ios-blue font-semibold inline-flex items-center gap-1"
+                  className="text-ios-footnote text-ios-blue font-semibold inline-flex items-center gap-1 hover:underline"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
+                  <MapPin className="w-4 h-4" />
                   Open in Maps
                 </a>
               )}
@@ -62,23 +58,24 @@ export default function StopCard({ stop }: StopCardProps) {
 
           {/* Stop Type Badge */}
           <div>
-            <span className="badge">
+            <Badge variant="secondary" className="text-xs font-bold">
               {stop.stop_type.toUpperCase()}
-            </span>
+            </Badge>
           </div>
 
           {/* Flags */}
           {stop.flags && stop.flags.trim().length > 0 && (
-            <div>
-              <p className="text-ios-caption-1 font-semibold text-ios-label-secondary mb-2 uppercase tracking-wide">
-                Driver Instructions
-              </p>
-              <div className="p-3 bg-ios-orange bg-opacity-10 rounded-lg">
-                <p className="text-ios-footnote font-medium text-ios-orange whitespace-pre-wrap">
+            <Alert className="border-orange-500 bg-orange-50 dark:bg-orange-950/20">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+              <AlertDescription>
+                <p className="text-ios-caption-1 font-semibold text-orange-800 dark:text-orange-200 mb-1 uppercase tracking-wide">
+                  Driver Instructions
+                </p>
+                <p className="text-ios-footnote font-medium text-orange-700 dark:text-orange-300 whitespace-pre-wrap">
                   {stop.flags}
                 </p>
-              </div>
-            </div>
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* Stop Notes */}
@@ -101,12 +98,13 @@ export default function StopCard({ stop }: StopCardProps) {
 
           {/* Pickup Logger Toggle */}
           {!showLogger ? (
-            <button
+            <Button
               onClick={() => setShowLogger(true)}
-              className="btn-primary w-full"
+              className="w-full min-h-[48px] text-ios-body font-semibold"
+              size="lg"
             >
               Log Pickup
-            </button>
+            </Button>
           ) : (
             <div className="border-t border-ios-separator pt-4 mt-4">
               <PickupLogger
@@ -120,6 +118,6 @@ export default function StopCard({ stop }: StopCardProps) {
           )}
         </div>
       </div>
-    </div>
+    </Card>
   )
 }

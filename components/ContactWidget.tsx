@@ -1,4 +1,6 @@
 import { formatPhoneNumber, getPhoneLink, getSmsLink } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Phone, MessageSquare } from 'lucide-react'
 
 interface ContactWidgetProps {
   phone?: string
@@ -19,49 +21,31 @@ export default function ContactWidget({ phone, customerName }: ContactWidgetProp
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <a
-        href={phoneLink}
-        className="btn-secondary text-ios-subheadline py-2.5 px-4 min-h-0"
-        aria-label={`Call ${customerName}`}
+    <div className="flex flex-wrap gap-3">
+      <Button
+        variant="outline"
+        size="default"
+        className="text-ios-subheadline font-medium min-h-[44px] active:scale-[0.98] transition-transform"
+        asChild
       >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-          />
-        </svg>
-        Call
-      </a>
+        <a href={phoneLink} aria-label={`Call ${customerName}`}>
+          <Phone className="w-4 h-4" />
+          Call
+        </a>
+      </Button>
 
       {smsLink && (
-        <a
-          href={smsLink}
-          className="btn-secondary text-ios-subheadline py-2.5 px-4 min-h-0"
-          aria-label={`Text ${customerName}`}
+        <Button
+          variant="outline"
+          size="default"
+          className="text-ios-subheadline font-medium min-h-[44px] active:scale-[0.98] transition-transform"
+          asChild
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
-          Text
-        </a>
+          <a href={smsLink} aria-label={`Text ${customerName}`}>
+            <MessageSquare className="w-4 h-4" />
+            Text
+          </a>
+        </Button>
       )}
 
       <div className="flex items-center text-ios-subheadline text-ios-label-secondary font-medium">
