@@ -147,6 +147,7 @@ npm start
 ## Key Implementation Details
 
 ### Database as Single Source of Truth
+-The app adapts to the Supabase schema. Do not change DB shape without updating types and queries.
 - **READ-ONLY** for customers, stops, and routes in the app
 - All data is fetched dynamically from Supabase
 - Never hard-code customer or route data
