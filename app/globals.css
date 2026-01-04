@@ -1,0 +1,308 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* FXBG Brand Colors */
+  --fxbg-brown: #754C29;
+  --fxbg-dark-brown: #5C3D21;
+  --fxbg-green: #1B5E20;
+  --fxbg-dark-green: #0D3D0D;
+  --fxbg-accent-green: #7CB342;
+  --fxbg-light-green: #9CCC65;
+  --fxbg-cream: #FBF8F3;
+
+  /* System Colors */
+  --ios-bg-primary: #FFFFFF;
+  --ios-bg-secondary: #FBF8F3;
+  --ios-separator: rgba(92, 61, 33, 0.2);
+  --ios-blue: #007AFF;
+  --ios-red: #FF3B30;
+  --ios-orange: #FF9500;
+}
+
+/* Base Styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--fxbg-cream);
+  color: var(--fxbg-dark-brown);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 17px;
+  line-height: 1.47;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* iOS Card Component */
+.card {
+  background: var(--ios-bg-primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: none;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.card-green {
+  border-left: 4px solid var(--fxbg-green);
+}
+
+/* FXBG Button Styles */
+.btn-primary {
+  background-color: var(--fxbg-dark-green);
+  color: white;
+  font-weight: 600;
+  font-size: 17px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: -0.4px;
+  touch-action: manipulation;
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+  background-color: var(--fxbg-green);
+}
+
+.btn-primary:disabled {
+  background-color: #C6C6C8;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--fxbg-green);
+  font-weight: 600;
+  font-size: 17px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: 2px solid var(--fxbg-green);
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: -0.4px;
+  touch-action: manipulation;
+}
+
+.btn-secondary:active {
+  transform: scale(0.96);
+  background-color: rgba(27, 94, 32, 0.05);
+}
+
+.btn-tertiary {
+  background-color: transparent;
+  color: var(--ios-blue);
+  font-weight: 600;
+  font-size: 17px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  touch-action: manipulation;
+}
+
+.btn-tertiary:active {
+  background-color: rgba(0, 122, 255, 0.1);
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 12px;
+  background-color: rgba(124, 179, 66, 0.15);
+  color: var(--fxbg-green);
+  letter-spacing: -0.2px;
+}
+
+/* iOS Form Inputs */
+input,
+textarea {
+  background-color: var(--ios-bg-secondary);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 17px;
+  font-family: inherit;
+  color: var(--fxbg-dark-brown);
+  min-height: 44px;
+  transition: all 0.2s ease-in-out;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.2);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(58, 58, 60, 0.6);
+}
+
+input.error,
+textarea.error {
+  background-color: #FFE5E5;
+  box-shadow: 0 0 0 2px var(--ios-red);
+}
+
+/* iOS Checkbox */
+input[type="checkbox"] {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background-color: var(--ios-bg-secondary);
+  border: 2px solid #C6C6C8;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  min-height: unset;
+  padding: 0;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--fxbg-green);
+  border-color: var(--fxbg-green);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Stop Order Badge */
+.stop-order {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--fxbg-dark-green) 0%, var(--fxbg-green) 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(13, 61, 13, 0.3);
+  letter-spacing: -0.5px;
+}
+
+/* Success/Error Messages */
+.success-message {
+  background-color: rgba(124, 179, 66, 0.15);
+  color: var(--fxbg-green);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  font-weight: 600;
+  font-size: 15px;
+  border-left: 4px solid var(--fxbg-accent-green);
+}
+
+.error-message {
+  background-color: #FFE5E5;
+  color: var(--ios-red);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.15);
+}
+
+/* Offline Banner (iOS Style) */
+.offline-banner {
+  background-color: var(--ios-orange);
+  color: white;
+  padding: 12px 16px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.2px;
+}
+
+/* Loading Spinner (iOS Style) */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+  border-color: currentColor;
+  border-top-color: transparent;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Links (iOS Blue) */
+a {
+  color: var(--ios-blue);
+  text-decoration: none;
+  transition: opacity 0.2s ease-in-out;
+  font-weight: 400;
+}
+
+a:active {
+  opacity: 0.6;
+}
+
+/* Separator (iOS Style) */
+.ios-separator {
+  height: 1px;
+  background-color: var(--ios-separator);
+  margin: 16px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+}
