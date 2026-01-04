@@ -143,7 +143,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
                   {currentStop.customer.name}
                 </h2>
                 <Badge variant="secondary" className="text-xs font-bold">
-                  {currentStop.stop_type.toUpperCase()}
+                  {currentStop.stop_type?.toUpperCase() || 'UNKNOWN'}
                 </Badge>
               </div>
             </div>
@@ -181,16 +181,6 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
                   </p>
                 </AlertDescription>
               </Alert>
-            )}
-
-            {/* Stop Notes */}
-            {currentStop.notes && (
-              <div className="p-3 bg-ios-bg-secondary rounded-lg">
-                <p className="text-ios-caption-1 font-semibold text-ios-label-secondary mb-1 uppercase tracking-wide">
-                  Stop Notes
-                </p>
-                <p className="text-ios-subheadline text-fxbg-dark-brown">{currentStop.notes}</p>
-              </div>
             )}
 
             {/* Contact */}
@@ -261,7 +251,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
               <Button
                 onClick={handleSuccess}
                 disabled={loading}
-                className="w-full min-h-[56px] text-ios-title-3 font-bold"
+                className="w-full min-h-[56px] text-ios-title-3 font-bold bg-fxbg-green hover:bg-fxbg-green/90 text-white"
                 size="lg"
               >
                 {loading ? (
@@ -299,7 +289,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
                   onClick={() => setShowFlagForm(true)}
                   disabled={loading}
                   variant="outline"
-                  className="flex-1 min-h-[48px] text-orange-600 border-orange-500 hover:bg-orange-50"
+                  className="flex-1 min-h-[48px] text-red-600 border-red-500 hover:bg-red-50"
                 >
                   <Flag className="w-4 h-4 mr-2" />
                   Flag Issue
@@ -309,9 +299,9 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
           ) : (
             // Flag Issue Form
             <div className="space-y-3">
-              <Alert className="border-orange-500 bg-orange-50">
-                <AlertTriangle className="h-4 w-4 text-orange-600" />
-                <AlertDescription className="text-orange-800">
+              <Alert className="border-red-500 bg-red-50">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-800">
                   Please explain why this pickup could not be completed
                 </AlertDescription>
               </Alert>
@@ -319,7 +309,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
               <Button
                 onClick={handleFlag}
                 disabled={loading || !notes.trim()}
-                className="w-full min-h-[56px] text-ios-title-3 font-bold bg-orange-600 hover:bg-orange-700"
+                className="w-full min-h-[56px] text-ios-title-3 font-bold bg-red-600 hover:bg-red-700 text-white"
                 size="lg"
               >
                 {loading ? (

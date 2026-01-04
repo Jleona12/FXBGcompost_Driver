@@ -59,7 +59,7 @@ export default function StopCard({ stop }: StopCardProps) {
           {/* Stop Type Badge */}
           <div>
             <Badge variant="secondary" className="text-xs font-bold">
-              {stop.stop_type.toUpperCase()}
+              {stop.stop_type?.toUpperCase() || 'UNKNOWN'}
             </Badge>
           </div>
 
@@ -76,16 +76,6 @@ export default function StopCard({ stop }: StopCardProps) {
                 </p>
               </AlertDescription>
             </Alert>
-          )}
-
-          {/* Stop Notes */}
-          {stop.notes && (
-            <div className="p-3 bg-ios-bg-secondary rounded-lg">
-              <p className="text-ios-caption-1 font-semibold text-ios-label-secondary mb-1 uppercase tracking-wide">
-                Stop Notes
-              </p>
-              <p className="text-ios-subheadline text-fxbg-dark-brown">{stop.notes}</p>
-            </div>
           )}
 
           {/* Contact Widget */}

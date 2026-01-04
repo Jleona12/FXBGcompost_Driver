@@ -83,7 +83,7 @@ export default function InitialsPrompt({ onStart, routeId, stopCount }: Initials
 
           <Button
             type="submit"
-            className="w-full min-h-[56px] text-ios-title-3 font-bold"
+            className="w-full min-h-[56px] text-ios-title-3 font-bold bg-fxbg-green hover:bg-fxbg-green/90 text-white"
             size="lg"
           >
             Start Route

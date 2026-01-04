@@ -125,7 +125,7 @@ export default function RoutePage() {
             Route Complete!
           </h1>
           <p className="text-ios-body text-ios-label-secondary mb-6">
-            You've completed all {stops.length} stops on Route {routeId}
+            You&apos;ve completed all {stops.length} stops on Route {routeId}
           </p>
           <Button
             onClick={handleBackToRoutes}
