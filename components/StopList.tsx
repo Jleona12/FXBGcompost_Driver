@@ -17,7 +17,7 @@ export default function StopList({ stops }: StopListProps) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
-        <p className="text-ios-title-3 font-semibold text-ios-label-secondary">
+        <p className="text-ios-title-3 font-semibold text-gray-500">
           No stops found for this route
         </p>
       </div>
@@ -26,7 +26,7 @@ export default function StopList({ stops }: StopListProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-ios-title-2 font-bold text-fxbg-dark-brown tracking-tight mb-4">
+      <h2 className="text-ios-title-2 font-bold text-gray-900 tracking-tight mb-4">
         Stops ({stops.length})
       </h2>
       {stops.map((stop) => (

@@ -17,7 +17,7 @@ export default function Header() {
             className="h-10 w-auto"
             priority
           />
-          <div className="text-ios-subheadline font-semibold text-ios-label-secondary hidden sm:block">
+          <div className="text-ios-subheadline font-semibold text-gray-600 hidden sm:block">
             Driver App
           </div>
         </Link>

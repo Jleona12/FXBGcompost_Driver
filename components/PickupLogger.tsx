@@ -103,7 +103,7 @@ export default function PickupLogger({ stopId, onSuccess }: PickupLoggerProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="initials" className="text-ios-footnote font-semibold text-ios-label-secondary uppercase tracking-wide">
+        <Label htmlFor="initials" className="text-ios-footnote font-semibold text-gray-500 uppercase tracking-wide">
           Driver Initials *
         </Label>
         <Input
@@ -126,7 +126,7 @@ export default function PickupLogger({ stopId, onSuccess }: PickupLoggerProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes" className="text-ios-footnote font-semibold text-ios-label-secondary uppercase tracking-wide">
+        <Label htmlFor="notes" className="text-ios-footnote font-semibold text-gray-500 uppercase tracking-wide">
           Notes (Optional)
         </Label>
         <Textarea
@@ -148,7 +148,7 @@ export default function PickupLogger({ stopId, onSuccess }: PickupLoggerProps) {
           disabled={loading}
           className="h-5 w-5"
         />
-        <Label htmlFor="completion" className="text-ios-body font-medium text-fxbg-dark-brown cursor-pointer select-none">
+        <Label htmlFor="completion" className="text-ios-body font-medium text-gray-900 cursor-pointer select-none">
           Pickup Complete
         </Label>
       </div>

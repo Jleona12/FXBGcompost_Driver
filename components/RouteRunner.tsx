@@ -139,7 +139,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
                 {currentStop.stop_order}
               </div>
               <div className="flex-1">
-                <h2 className="text-ios-title-2 font-bold text-fxbg-dark-brown mb-1">
+                <h2 className="text-ios-title-2 font-bold text-gray-900 mb-1">
                   {currentStop.customer.name}
                 </h2>
                 <Badge variant="secondary" className="text-xs font-bold">
@@ -151,7 +151,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
             {/* Address */}
             {currentStop.customer.address && (
               <div className="space-y-2">
-                <p className="text-ios-body text-ios-label-secondary">
+                <p className="text-ios-body text-gray-600">
                   {currentStop.customer.address}
                 </p>
                 {mapLink && (
@@ -159,7 +159,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
                     href={mapLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-ios-blue font-semibold text-ios-subheadline hover:underline"
+                    className="inline-flex items-center gap-2 text-fxbg-green font-semibold text-ios-subheadline hover:underline"
                   >
                     <MapPin className="w-4 h-4" />
                     Open in Maps
@@ -210,7 +210,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
                     </a>
                   </Button>
                 )}
-                <span className="flex items-center text-ios-subheadline text-ios-label-secondary font-medium">
+                <span className="flex items-center text-ios-subheadline text-gray-600 font-medium">
                   {formattedPhone}
                 </span>
               </div>
@@ -218,7 +218,7 @@ export default function RouteRunner({ stops, driverInitials, onComplete }: Route
 
             {/* Notes Section */}
             <div className="space-y-2 pt-2">
-              <Label htmlFor="notes" className="text-ios-footnote font-semibold text-ios-label-secondary uppercase tracking-wide">
+              <Label htmlFor="notes" className="text-ios-footnote font-semibold text-gray-500 uppercase tracking-wide">
                 Notes (Optional)
               </Label>
               <Textarea

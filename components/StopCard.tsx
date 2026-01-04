@@ -32,14 +32,14 @@ export default function StopCard({ stop }: StopCardProps) {
         {/* Stop Details */}
         <div className="flex-1 space-y-3">
           {/* Customer Name */}
-          <h3 className="text-ios-title-3 font-bold text-fxbg-dark-brown tracking-tight">
+          <h3 className="text-ios-title-3 font-bold text-gray-900 tracking-tight">
             {stop.customer.name}
           </h3>
 
           {/* Address */}
           {stop.customer.address && (
             <div>
-              <p className="text-ios-subheadline text-ios-label-secondary mb-2">
+              <p className="text-ios-subheadline text-gray-600 mb-2">
                 {stop.customer.address}
               </p>
               {mapLink && (
@@ -47,7 +47,7 @@ export default function StopCard({ stop }: StopCardProps) {
                   href={mapLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-ios-footnote text-ios-blue font-semibold inline-flex items-center gap-1 hover:underline"
+                  className="text-ios-footnote text-fxbg-green font-semibold inline-flex items-center gap-1 hover:underline"
                 >
                   <MapPin className="w-4 h-4" />
                   Open in Maps

@@ -89,7 +89,7 @@ export default function RouteList() {
         <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-ios-bg-secondary flex items-center justify-center">
           <Map className="w-10 h-10 text-ios-label-tertiary" />
         </div>
-        <p className="text-ios-title-3 font-semibold text-ios-label-secondary mb-4">
+        <p className="text-ios-title-3 font-semibold text-gray-500 mb-4">
           No routes available
         </p>
         <Button variant="outline" onClick={loadRoutes}>
@@ -103,7 +103,7 @@ export default function RouteList() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-ios-title-2 font-bold text-fxbg-dark-brown tracking-tight">
+        <h2 className="text-ios-title-2 font-bold text-gray-900 tracking-tight">
           Available Routes ({routes.length})
         </h2>
         <Button
@@ -123,17 +123,17 @@ export default function RouteList() {
             <Card className="p-4 hover:bg-accent/50 active:scale-[0.98] transition-all cursor-pointer">
               <div className="flex justify-between items-center">
                 <div className="flex-1">
-                  <h3 className="text-ios-headline font-semibold text-fxbg-dark-brown mb-1 flex items-center gap-2">
+                  <h3 className="text-ios-headline font-semibold text-gray-900 mb-1 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-fxbg-green" />
                     Route {route.id}
                   </h3>
                   {route.date && (
-                    <p className="text-ios-subheadline text-ios-label-secondary">
+                    <p className="text-ios-subheadline text-gray-600">
                       {format(new Date(route.date), 'MMMM d, yyyy')}
                     </p>
                   )}
                   {route.driver && (
-                    <p className="text-ios-subheadline text-ios-label-secondary mt-1">
+                    <p className="text-ios-subheadline text-gray-600 mt-1">
                       Driver: {route.driver}
                     </p>
                   )}

@@ -121,15 +121,15 @@ export default function RoutePage() {
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
             <CheckCircle2 className="w-12 h-12 text-green-600" />
           </div>
-          <h1 className="text-ios-title-1 font-bold text-fxbg-dark-brown mb-2">
+          <h1 className="text-ios-title-1 font-bold text-gray-900 mb-2">
             Route Complete!
           </h1>
-          <p className="text-ios-body text-ios-label-secondary mb-6">
+          <p className="text-ios-body text-gray-600 mb-6">
             You&apos;ve completed all {stops.length} stops on Route {routeId}
           </p>
           <Button
             onClick={handleBackToRoutes}
-            className="w-full min-h-[56px] text-ios-title-3 font-bold"
+            className="w-full min-h-[56px] text-ios-title-3 font-bold bg-fxbg-green hover:bg-fxbg-green/90 text-white"
             size="lg"
           >
             Back to Routes

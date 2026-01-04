@@ -48,7 +48,7 @@ export default function ContactWidget({ phone, customerName }: ContactWidgetProp
         </Button>
       )}
 
-      <div className="flex items-center text-ios-subheadline text-ios-label-secondary font-medium">
+      <div className="flex items-center text-ios-subheadline text-gray-600 font-medium">
         {formattedPhone}
       </div>
     </div>

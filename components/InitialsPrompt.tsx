@@ -46,17 +46,17 @@ export default function InitialsPrompt({ onStart, routeId, stopCount }: Initials
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-fxbg-green/10 flex items-center justify-center">
             <UserCircle className="w-12 h-12 text-fxbg-green" />
           </div>
-          <h1 className="text-ios-title-1 font-bold text-fxbg-dark-brown mb-2">
+          <h1 className="text-ios-title-1 font-bold text-gray-900 mb-2">
             Route {routeId}
           </h1>
-          <p className="text-ios-body text-ios-label-secondary">
+          <p className="text-ios-body text-gray-600">
             {stopCount} stop{stopCount !== 1 ? 's' : ''} on this route
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="initials" className="text-ios-footnote font-semibold text-ios-label-secondary uppercase tracking-wide">
+            <Label htmlFor="initials" className="text-ios-footnote font-semibold text-gray-500 uppercase tracking-wide">
               Your Initials *
             </Label>
             <Input
