@@ -5,7 +5,9 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
-      "Bash(npx shadcn@latest:*)"
+      "Bash(npx shadcn@latest:*)",
+      "Bash(lsof:*)",
+      "Bash(curl:*)"
     ]
   }
 }
