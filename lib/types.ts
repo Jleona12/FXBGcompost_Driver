@@ -63,3 +63,64 @@ export interface PickupEventPayload {
   completed: boolean
   notes?: string
 }
+
+// Admin types - Route with stop count for list view
+export interface RouteWithStopCount extends Route {
+  stop_count: number
+}
+
+// Admin types - Stop with latest pickup status for driver view
+export interface StopWithStatus extends StopWithCustomer {
+  latest_pickup?: PickupEvent
+}
+
+// Admin payloads - Create route
+export interface CreateRoutePayload {
+  date?: string
+  driver?: string
+  notes?: Record<string, any>
+}
+
+// Admin payloads - Update route
+export interface UpdateRoutePayload {
+  date?: string
+  driver?: string
+  notes?: Record<string, any>
+}
+
+// Admin payloads - Create stop
+export interface CreateStopPayload {
+  route_id: number
+  customer_id: string  // stripe_customer_id
+  stop_order: number
+  stop_type?: string
+  visible_to_driver?: boolean
+  flags?: string
+  flag_notes?: string
+}
+
+// Admin payloads - Update stop
+export interface UpdateStopPayload {
+  stop_order?: number
+  stop_type?: string
+  visible_to_driver?: boolean
+  flags?: string
+  flag_notes?: string
+}
+
+// Admin payloads - Batch update stop orders
+export interface BatchStopOrderUpdate {
+  stop_id: number
+  stop_order: number
+}
+
+// Admin types - Pickup event with full context for dashboard
+export interface PickupEventWithDetails extends PickupEvent {
+  stop: {
+    id: number
+    stop_order: number
+    stop_type?: string
+    customer: Customer
+    route: Route
+  }
+}

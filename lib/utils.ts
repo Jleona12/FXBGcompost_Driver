@@ -124,3 +124,23 @@ export function isOnline(): boolean {
   if (typeof window === 'undefined') return true
   return navigator.onLine
 }
+
+/**
+ * Parse a date string (YYYY-MM-DD) into a Date object without timezone issues.
+ * Using new Date("2024-01-15") parses as midnight UTC, which shifts to the
+ * previous day in US timezones. This function parses the date parts manually
+ * to create a local date.
+ */
+export function parseLocalDate(dateString: string | undefined): Date | null {
+  if (!dateString) return null
+
+  // Extract YYYY-MM-DD from the string
+  const match = dateString.trim().match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!match) return null
+
+  const year = parseInt(match[1], 10)
+  const month = parseInt(match[2], 10) - 1 // JS months are 0-indexed
+  const day = parseInt(match[3], 10)
+
+  return new Date(year, month, day)
+}

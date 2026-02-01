@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Route } from '@/lib/types'
 import { fetchRoutes as fetchRoutesData } from '@/lib/data/routes'
 import { format } from 'date-fns'
+import { parseLocalDate } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -127,9 +128,9 @@ export default function RouteList() {
                     <MapPin className="w-4 h-4 text-fxbg-green" />
                     Route {route.id}
                   </h3>
-                  {route.date && (
+                  {route.date && parseLocalDate(route.date) && (
                     <p className="text-ios-subheadline text-gray-600">
-                      {format(new Date(route.date), 'MMMM d, yyyy')}
+                      {format(parseLocalDate(route.date)!, 'MMMM d, yyyy')}
                     </p>
                   )}
                   {route.driver && (
