@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import Header from '@/components/Header'
 import OfflineIndicator from '@/components/OfflineIndicator'
 
 export const metadata: Metadata = {
@@ -35,7 +34,6 @@ export default function RootLayout({
       </head>
       <body>
         <OfflineIndicator />
-        <Header />
         {children}
       </body>
     </html>
