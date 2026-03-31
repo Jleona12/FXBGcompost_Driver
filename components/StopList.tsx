@@ -8,13 +8,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   CheckCircle2,
   XCircle,
-  MapPin,
   ChevronRight,
   ArrowLeft,
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react'
-import { getMapLink } from '@/lib/utils'
 
 interface StopListProps {
   stops: StopWithStatus[]
@@ -102,7 +100,6 @@ export default function StopList({
             const pickup = stop.latest_pickup
             const isCollected = pickup?.completed === true
             const isFailed = pickup != null && !pickup.completed
-            const mapLink = getMapLink(stop.customer.address)
 
             return (
               <Card
@@ -146,18 +143,11 @@ export default function StopList({
                         )}
                       </div>
 
-                      {/* Address as maps link */}
+                      {/* Address — plain text in list, maps link is in detail view */}
                       {stop.customer.address && (
-                        <a
-                          href={mapLink || '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-ios-footnote text-gray-500 truncate block hover:text-fxbg-green"
-                        >
-                          <MapPin className="w-3 h-3 inline mr-1" />
+                        <span className="text-ios-footnote text-gray-500 truncate block">
                           {stop.customer.address}
-                        </a>
+                        </span>
                       )}
 
                       {/* Pickup info */}

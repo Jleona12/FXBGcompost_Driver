@@ -31,7 +31,7 @@ interface StopDetailProps {
   stop: StopWithStatus
   driverInitials: string
   onBack: () => void
-  onPickupLogged: () => void
+  onPickupLogged: (stopId: number, completed: boolean, notes?: string) => void
 }
 
 export default function StopDetail({
@@ -76,7 +76,7 @@ export default function StopDetail({
     }
 
     setLoading(false)
-    onPickupLogged()
+    onPickupLogged(stop.id, completed, notes)
   }
 
   const handleSaveNotes = async () => {

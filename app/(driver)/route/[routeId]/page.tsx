@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { StopWithStatus } from '@/lib/types'
+import { StopWithStatus, PickupEvent } from '@/lib/types'
 import { fetchStopsByRoute } from '@/lib/data/stops'
 import InitialsPrompt from '@/components/InitialsPrompt'
 import StopList from '@/components/StopList'
@@ -59,11 +59,29 @@ export default function RoutePage() {
     router.push('/')
   }
 
-  const handlePickupLogged = () => {
-    // Refresh stops to get updated status, then go back to list
-    loadStops().then(() => {
-      setSelectedStopIndex(null)
-    })
+  const handlePickupLogged = (stopId: number, completed: boolean, notes?: string) => {
+    // Optimistic update — show the change immediately
+    setStops((prev) =>
+      prev.map((s) =>
+        s.id === stopId
+          ? {
+              ...s,
+              latest_pickup: {
+                id: 0, // placeholder
+                stop_id: stopId,
+                driver_initials: driverInitials!,
+                completed,
+                notes: notes || undefined,
+                timestamp: new Date().toISOString(),
+              } as PickupEvent,
+            }
+          : s
+      )
+    )
+    setSelectedStopIndex(null)
+
+    // Background refresh to sync with server
+    loadStops()
   }
 
   // Loading State
