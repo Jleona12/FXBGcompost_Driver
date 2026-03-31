@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar, User, MapPin, ChevronRight, Trash2 } from 'lucide-react'
+import { Calendar, User, MapPin, ChevronRight, Trash2, Copy } from 'lucide-react'
 import { RouteWithStopCount } from '@/lib/types'
 import { format } from 'date-fns'
 import { parseLocalDate } from '@/lib/utils'
@@ -12,14 +12,23 @@ import { parseLocalDate } from '@/lib/utils'
 interface RouteCardProps {
   route: RouteWithStopCount
   onDelete?: (routeId: number) => void
+  onDuplicate?: (routeId: number) => void
 }
 
-export default function RouteCard({ route, onDelete }: RouteCardProps) {
+export default function RouteCard({ route, onDelete, onDuplicate }: RouteCardProps) {
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (onDelete) {
       onDelete(route.id)
+    }
+  }
+
+  const handleDuplicate = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onDuplicate) {
+      onDuplicate(route.id)
     }
   }
 
@@ -56,7 +65,18 @@ export default function RouteCard({ route, onDelete }: RouteCardProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {onDuplicate && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-400 hover:text-fxbg-green hover:bg-green-50"
+                  onClick={handleDuplicate}
+                  title="Duplicate route"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              )}
               {onDelete && (
                 <Button
                   variant="ghost"

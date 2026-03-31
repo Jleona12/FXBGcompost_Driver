@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { RouteWithStopCount } from '@/lib/types'
-import { fetchAdminRoutes, deleteRoute } from '@/lib/data/admin-routes'
+import { fetchAdminRoutes, deleteRoute, cloneRoute } from '@/lib/data/admin-routes'
 import RouteCard from '@/components/admin/RouteCard'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -51,6 +51,19 @@ export default function RoutesPage() {
     }
 
     setDeleteConfirm(null)
+  }
+
+  const handleDuplicate = async (routeId: number) => {
+    // Clone with today's date as default
+    const today = new Date().toISOString().split('T')[0]
+    const { data: cloned, error: cloneError } = await cloneRoute(routeId, today)
+
+    if (cloneError) {
+      setError(cloneError.message)
+    } else if (cloned) {
+      // Add the cloned route to the list at the top
+      setRoutes(prev => [cloned, ...prev])
+    }
   }
 
   return (
@@ -128,6 +141,7 @@ export default function RoutesPage() {
               key={route.id}
               route={route}
               onDelete={handleDelete}
+              onDuplicate={handleDuplicate}
             />
           ))}
         </div>

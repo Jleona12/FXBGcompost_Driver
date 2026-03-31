@@ -16,6 +16,8 @@ import {
   CheckCircle2,
   XCircle,
   ChevronDown,
+  StickyNote,
+  Check,
 } from 'lucide-react'
 import { formatPhoneNumber, getPhoneLink, getMapLink } from '@/lib/utils'
 
@@ -42,6 +44,10 @@ export default function StopDetail({
   const [error, setError] = useState<string | null>(null)
   const [showReasons, setShowReasons] = useState(false)
   const [otherReason, setOtherReason] = useState('')
+  const [driverNotes, setDriverNotes] = useState(stop.flags || '')
+  const [savingNotes, setSavingNotes] = useState(false)
+  const [notesSaved, setNotesSaved] = useState(false)
+  const notesChanged = driverNotes !== (stop.flags || '')
 
   const pickup = stop.latest_pickup
   const isCollected = pickup?.completed === true
@@ -71,6 +77,27 @@ export default function StopDetail({
 
     setLoading(false)
     onPickupLogged()
+  }
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true)
+    try {
+      const response = await fetch(`/api/stops/${stop.id}/notes`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ driver_notes: driverNotes }),
+      })
+      if (response.ok) {
+        setNotesSaved(true)
+        setTimeout(() => setNotesSaved(false), 2000)
+      } else {
+        setError('Failed to save note')
+      }
+    } catch {
+      setError('Failed to save note')
+    } finally {
+      setSavingNotes(false)
+    }
   }
 
   const handleCollected = () => logPickup(true)
@@ -129,20 +156,43 @@ export default function StopDetail({
               </a>
             )}
 
-            {/* Driver Instructions */}
-            {stop.flags && stop.flags.trim().length > 0 && (
-              <Alert className="border-orange-500 bg-orange-50">
-                <AlertTriangle className="h-5 w-5 text-orange-600" />
-                <AlertDescription>
-                  <p className="text-ios-caption-1 font-semibold text-orange-800 mb-1 uppercase tracking-wide">
-                    Driver Notes
-                  </p>
-                  <p className="text-ios-footnote font-medium text-orange-700 whitespace-pre-wrap">
-                    {stop.flags}
-                  </p>
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Driver Notes — editable, persists to next visit */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <StickyNote className="w-4 h-4 text-orange-500" />
+                <span className="text-ios-caption-1 font-semibold text-gray-500 uppercase tracking-wide">
+                  Driver Notes
+                </span>
+                {notesSaved && (
+                  <span className="text-ios-caption-1 text-fxbg-green font-medium flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Saved
+                  </span>
+                )}
+              </div>
+              <textarea
+                value={driverNotes}
+                onChange={(e) => setDriverNotes(e.target.value)}
+                placeholder="Gate code, bucket location, access notes..."
+                rows={2}
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-ios-body resize-none focus:outline-none focus:ring-2 focus:ring-fxbg-green/50 focus:border-fxbg-green bg-orange-50/50"
+              />
+              {notesChanged && (
+                <Button
+                  onClick={handleSaveNotes}
+                  disabled={savingNotes}
+                  variant="outline"
+                  size="sm"
+                  className="text-orange-700 border-orange-300 hover:bg-orange-50"
+                >
+                  {savingNotes ? (
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  ) : (
+                    <Check className="w-3 h-3 mr-1" />
+                  )}
+                  Save Note
+                </Button>
+              )}
+            </div>
 
             {/* Contact */}
             {phoneLink && (

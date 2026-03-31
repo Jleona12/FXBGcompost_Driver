@@ -128,6 +128,40 @@ export async function updateRoute(
   }
 }
 
+export async function cloneRoute(
+  routeId: number,
+  newDate?: string
+): Promise<{ data: RouteWithStopCount | null; error: Error | null }> {
+  try {
+    if (isNaN(routeId) || routeId < 1) {
+      return { data: null, error: new Error('Invalid route ID') }
+    }
+
+    const response = await fetch(`/api/admin/routes/${routeId}/clone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: newDate }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      return {
+        data: null,
+        error: new Error(errorData.error || `HTTP ${response.status}`),
+      }
+    }
+
+    const data = await response.json()
+    return { data, error: null }
+  } catch (err) {
+    console.error('[data/admin-routes] cloneRoute error:', err)
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error('Network error'),
+    }
+  }
+}
+
 export async function deleteRoute(
   routeId: number
 ): Promise<{ success: boolean; error: Error | null }> {
