@@ -1,42 +1,29 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { StopWithCustomer } from '@/lib/types'
+import { StopWithStatus } from '@/lib/types'
 import { fetchStopsByRoute } from '@/lib/data/stops'
 import InitialsPrompt from '@/components/InitialsPrompt'
-import RouteRunner from '@/components/RouteRunner'
+import StopList from '@/components/StopList'
+import StopDetail from '@/components/StopDetail'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card } from '@/components/ui/card'
-import { Loader2, CheckCircle2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 export default function RoutePage() {
   const params = useParams()
   const router = useRouter()
   const routeId = params?.routeId as string
 
-  const [stops, setStops] = useState<StopWithCustomer[]>([])
+  const [stops, setStops] = useState<StopWithStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [driverInitials, setDriverInitials] = useState<string | null>(null)
-  const [routeComplete, setRouteComplete] = useState(false)
+  const [selectedStopIndex, setSelectedStopIndex] = useState<number | null>(null)
 
-  useEffect(() => {
-    if (routeId) {
-      loadStops()
-      // Try to load cached initials
-      if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem('fxbg_driver_initials')
-        if (cached) {
-          // Don't auto-set, let user confirm
-        }
-      }
-    }
-  }, [routeId])
-
-  async function loadStops() {
+  const loadStops = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -56,22 +43,31 @@ export default function RoutePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [routeId])
+
+  useEffect(() => {
+    if (routeId) {
+      loadStops()
+    }
+  }, [routeId, loadStops])
 
   const handleStartRoute = (initials: string) => {
     setDriverInitials(initials)
-  }
-
-  const handleRouteComplete = () => {
-    setRouteComplete(true)
   }
 
   const handleBackToRoutes = () => {
     router.push('/')
   }
 
+  const handlePickupLogged = () => {
+    // Refresh stops to get updated status, then go back to list
+    loadStops().then(() => {
+      setSelectedStopIndex(null)
+    })
+  }
+
   // Loading State
-  if (loading) {
+  if (loading && stops.length === 0) {
     return (
       <main className="min-h-screen bg-ios-bg-secondary">
         <div className="container mx-auto px-4 py-6">
@@ -91,7 +87,7 @@ export default function RoutePage() {
   }
 
   // Error State
-  if (error) {
+  if (error && stops.length === 0) {
     return (
       <main className="min-h-screen bg-ios-bg-secondary">
         <div className="container mx-auto px-4 py-6">
@@ -113,33 +109,7 @@ export default function RoutePage() {
     )
   }
 
-  // Route Complete State
-  if (routeComplete) {
-    return (
-      <main className="min-h-screen bg-ios-bg-secondary flex items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckCircle2 className="w-12 h-12 text-green-600" />
-          </div>
-          <h1 className="text-ios-title-1 font-bold text-gray-900 mb-2">
-            Route Complete!
-          </h1>
-          <p className="text-ios-body text-gray-600 mb-6">
-            You&apos;ve completed all {stops.length} stops on Route {routeId}
-          </p>
-          <Button
-            onClick={handleBackToRoutes}
-            className="w-full min-h-[56px] text-ios-title-3 font-bold bg-fxbg-green hover:bg-fxbg-green/90 text-white"
-            size="lg"
-          >
-            Back to Routes
-          </Button>
-        </Card>
-      </main>
-    )
-  }
-
-  // Initials Prompt (before route starts)
+  // Initials Prompt (before viewing route)
   if (!driverInitials) {
     return (
       <InitialsPrompt
@@ -150,12 +120,26 @@ export default function RoutePage() {
     )
   }
 
-  // Route Runner (main flow)
+  // Stop Detail view (when a stop is selected)
+  if (selectedStopIndex !== null && stops[selectedStopIndex]) {
+    return (
+      <StopDetail
+        stop={stops[selectedStopIndex]}
+        driverInitials={driverInitials}
+        onBack={() => setSelectedStopIndex(null)}
+        onPickupLogged={handlePickupLogged}
+      />
+    )
+  }
+
+  // Stop List (main view)
   return (
-    <RouteRunner
+    <StopList
       stops={stops}
       driverInitials={driverInitials}
-      onComplete={handleRouteComplete}
+      onSelectStop={setSelectedStopIndex}
+      onBackToRoutes={handleBackToRoutes}
+      onRefresh={loadStops}
     />
   )
 }

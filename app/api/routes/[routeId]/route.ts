@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { StopWithCustomer } from '@/lib/types'
 
 export async function GET(
   request: NextRequest,
@@ -18,12 +17,13 @@ export async function GET(
       )
     }
 
-    // Fetch stops for the route with customer information
+    // Fetch stops with customer info and their pickup events
     const { data: stops, error } = await supabase
       .from('stops')
       .select(`
         *,
-        customer:customers(*)
+        customer:customers(*),
+        pickup_events(*)
       `)
       .eq('route_id', routeIdNum)
       .eq('visible_to_driver', true)
@@ -37,13 +37,24 @@ export async function GET(
       )
     }
 
-    // Transform the data to match StopWithCustomer type
-    const stopsWithCustomers: StopWithCustomer[] = (stops || []).map((stop: any) => ({
-      ...stop,
-      customer: stop.customer,
-    }))
+    // Transform: attach the latest pickup event to each stop
+    const stopsWithStatus = (stops || []).map((stop: any) => {
+      const events = stop.pickup_events || []
+      // Sort by timestamp descending to get the latest
+      const latest = events.sort(
+        (a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      )[0] || null
 
-    return NextResponse.json(stopsWithCustomers)
+      // Remove the raw array, attach just the latest
+      const { pickup_events, ...rest } = stop
+      return {
+        ...rest,
+        customer: stop.customer,
+        latest_pickup: latest,
+      }
+    })
+
+    return NextResponse.json(stopsWithStatus)
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(

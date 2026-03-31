@@ -1,13 +1,13 @@
-import { StopWithCustomer } from '@/lib/types'
+import { StopWithStatus } from '@/lib/types'
 
 /**
- * Fetches stops for a specific route with customer information
+ * Fetches stops for a specific route with customer information and pickup status
  * @param routeId - Numeric route ID
- * @returns Array of stops with customers, or null on error
+ * @returns Array of stops with customers and latest pickup event, or null on error
  */
 export async function fetchStopsByRoute(
   routeId: number
-): Promise<{ data: StopWithCustomer[] | null; error: Error | null }> {
+): Promise<{ data: StopWithStatus[] | null; error: Error | null }> {
   try {
     // Validate input
     if (isNaN(routeId) || routeId < 1) {
