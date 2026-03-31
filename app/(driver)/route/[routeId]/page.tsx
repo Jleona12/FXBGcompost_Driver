@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { StopWithStatus, PickupEvent } from '@/lib/types'
+import { StopWithStatus, PickupEvent, BatchStopOrderUpdate } from '@/lib/types'
 import { fetchStopsByRoute } from '@/lib/data/stops'
 import InitialsPrompt from '@/components/InitialsPrompt'
 import StopList from '@/components/StopList'
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
+
+const POLL_INTERVAL = 15_000 // 15 seconds
 
 export default function RoutePage() {
   const params = useParams()
@@ -22,10 +24,10 @@ export default function RoutePage() {
   const [error, setError] = useState<string | null>(null)
   const [driverInitials, setDriverInitials] = useState<string | null>(null)
   const [selectedStopIndex, setSelectedStopIndex] = useState<number | null>(null)
+  const pollRef = useRef<NodeJS.Timeout | null>(null)
 
   const loadStops = useCallback(async () => {
     try {
-      setLoading(true)
       setError(null)
 
       const routeIdNum = Number(routeId)
@@ -45,11 +47,30 @@ export default function RoutePage() {
     }
   }, [routeId])
 
+  // Initial load
   useEffect(() => {
     if (routeId) {
+      setLoading(true)
       loadStops()
     }
   }, [routeId, loadStops])
+
+  // Poll for status updates every 15s when on the list view
+  useEffect(() => {
+    if (!driverInitials || selectedStopIndex !== null) {
+      // Don't poll before login or while in detail view
+      if (pollRef.current) clearInterval(pollRef.current)
+      return
+    }
+
+    pollRef.current = setInterval(() => {
+      loadStops()
+    }, POLL_INTERVAL)
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
+  }, [driverInitials, selectedStopIndex, loadStops])
 
   const handleStartRoute = (initials: string) => {
     setDriverInitials(initials)
@@ -67,7 +88,7 @@ export default function RoutePage() {
           ? {
               ...s,
               latest_pickup: {
-                id: 0, // placeholder
+                id: 0,
                 stop_id: stopId,
                 driver_initials: driverInitials!,
                 completed,
@@ -82,6 +103,27 @@ export default function RoutePage() {
 
     // Background refresh to sync with server
     loadStops()
+  }
+
+  const handleReorder = async (updates: BatchStopOrderUpdate[]) => {
+    // Optimistic local reorder already handled by StopList
+    // Persist to server
+    try {
+      const response = await fetch(`/api/routes/${routeId}/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates }),
+      })
+
+      if (!response.ok) {
+        console.error('Failed to save reorder')
+        // Reload to get server truth
+        loadStops()
+      }
+    } catch {
+      console.error('Failed to save reorder')
+      loadStops()
+    }
   }
 
   // Loading State
@@ -158,6 +200,7 @@ export default function RoutePage() {
       onSelectStop={setSelectedStopIndex}
       onBackToRoutes={handleBackToRoutes}
       onRefresh={loadStops}
+      onReorder={handleReorder}
     />
   )
 }
