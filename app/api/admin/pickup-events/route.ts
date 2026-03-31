@@ -5,8 +5,12 @@ import { supabase } from '@/lib/supabase'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '100', 10)
-    const offset = parseInt(searchParams.get('offset') || '0', 10)
+    const MAX_LIMIT = 500
+    const limit = Math.min(
+      Math.max(1, parseInt(searchParams.get('limit') || '100', 10) || 100),
+      MAX_LIMIT
+    )
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10) || 0)
     const routeId = searchParams.get('route_id')
     const driverInitials = searchParams.get('driver_initials')
     const dateFrom = searchParams.get('date_from')
