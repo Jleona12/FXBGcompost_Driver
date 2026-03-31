@@ -12,9 +12,13 @@ export async function GET(request: NextRequest) {
       .order('name', { ascending: true })
 
     // Apply search filter if provided
+    // Escape special PostgREST filter characters to prevent filter injection
     if (search && search.trim()) {
-      const searchTerm = `%${search.trim()}%`
-      query = query.or(`name.ilike.${searchTerm},address.ilike.${searchTerm},phone.ilike.${searchTerm}`)
+      const sanitized = search.trim().replace(/[,%()]/g, '')
+      if (sanitized) {
+        const searchTerm = `%${sanitized}%`
+        query = query.or(`name.ilike.${searchTerm},address.ilike.${searchTerm},phone.ilike.${searchTerm}`)
+      }
     }
 
     const { data, error } = await query

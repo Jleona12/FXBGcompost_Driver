@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
+
+if (!ADMIN_PASSWORD) {
+  throw new Error(
+    'ADMIN_PASSWORD environment variable is required. Set it in your .env.local file.'
+  )
+}
 const COOKIE_NAME = 'admin_auth'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
