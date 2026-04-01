@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { StopWithStatus, PickupEvent, BatchStopOrderUpdate } from '@/lib/types'
 import { fetchStopsByRoute } from '@/lib/data/stops'
+import { supabase } from '@/lib/supabase'
 import InitialsPrompt from '@/components/InitialsPrompt'
 import StopList from '@/components/StopList'
 import StopDetail from '@/components/StopDetail'
@@ -12,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 
-const POLL_INTERVAL = 3_000 // 3 seconds
+const POLL_INTERVAL = 30_000 // 30s fallback (Realtime handles instant updates)
 
 export default function RoutePage() {
   const params = useParams()
@@ -55,7 +56,7 @@ export default function RoutePage() {
     }
   }, [routeId, loadStops])
 
-  // Poll for status updates every 15s when on the list view
+  // Fallback poll — catches anything Realtime misses (e.g. reconnecting after phone sleep)
   useEffect(() => {
     if (!driverInitials || selectedStopIndex !== null) {
       // Don't poll before login or while in detail view
@@ -71,6 +72,37 @@ export default function RoutePage() {
       if (pollRef.current) clearInterval(pollRef.current)
     }
   }, [driverInitials, selectedStopIndex, loadStops])
+
+  // Supabase Realtime — instant pickup status updates
+  useEffect(() => {
+    if (!driverInitials || !routeId) return
+
+    const stopIds = stops.map((s) => s.id)
+    if (stopIds.length === 0) return
+
+    const channel = supabase
+      .channel(`route-${routeId}-pickups`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'pickup_events',
+        },
+        (payload) => {
+          const newEvent = payload.new as PickupEvent
+          if (stopIds.includes(newEvent.stop_id)) {
+            loadStops()
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [driverInitials, routeId, stops.length, loadStops]) // re-subscribe when stop list changes
 
   const handleStartRoute = (initials: string) => {
     setDriverInitials(initials)
