@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 
-const POLL_INTERVAL = 15_000 // 15 seconds
+const POLL_INTERVAL = 3_000 // 3 seconds
 
 export default function RoutePage() {
   const params = useParams()
