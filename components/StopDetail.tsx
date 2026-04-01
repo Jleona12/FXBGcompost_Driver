@@ -21,11 +21,7 @@ import {
 } from 'lucide-react'
 import { formatPhoneNumber, getPhoneLink, getMapLink } from '@/lib/utils'
 
-const NOT_COLLECTED_REASONS = [
-  'Bucket not outside',
-  'Driveway blocked',
-  'Other',
-] as const
+const QUICK_REASON = 'Bucket not outside'
 
 interface StopDetailProps {
   stop: StopWithStatus
@@ -279,42 +275,35 @@ export default function StopDetail({
             </Button>
           ) : (
             <div className="space-y-2">
-              {NOT_COLLECTED_REASONS.map((reason) => (
-                <div key={reason}>
-                  {reason === 'Other' ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={otherReason}
-                        onChange={(e) => {
-                          setOtherReason(e.target.value)
-                          setError(null)
-                        }}
-                        placeholder="Other reason..."
-                        className="flex-1 h-12 px-3 rounded-lg border border-red-300 text-ios-body focus:outline-none focus:ring-2 focus:ring-red-400"
-                      />
-                      <Button
-                        onClick={() => handleNotCollected('Other')}
-                        disabled={loading || !otherReason.trim()}
-                        variant="outline"
-                        className="h-12 px-4 text-red-600 border-red-300 hover:bg-red-50"
-                      >
-                        Submit
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={() => handleNotCollected(reason)}
-                      disabled={loading}
-                      variant="outline"
-                      className="w-full min-h-[48px] text-red-600 border-red-300 hover:bg-red-50 justify-start"
-                    >
-                      <XCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                      {reason}
-                    </Button>
-                  )}
-                </div>
-              ))}
+              <Button
+                onClick={() => handleNotCollected(QUICK_REASON)}
+                disabled={loading}
+                variant="outline"
+                className="w-full min-h-[48px] text-red-600 border-red-300 hover:bg-red-50 justify-start"
+              >
+                <XCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                {QUICK_REASON}
+              </Button>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={otherReason}
+                  onChange={(e) => {
+                    setOtherReason(e.target.value)
+                    setError(null)
+                  }}
+                  placeholder="Other reason..."
+                  className="flex-1 h-12 px-3 rounded-lg border border-red-300 text-ios-body focus:outline-none focus:ring-2 focus:ring-red-400"
+                />
+                <Button
+                  onClick={() => handleNotCollected('Other')}
+                  disabled={loading || !otherReason.trim()}
+                  variant="outline"
+                  className="h-12 px-4 text-red-600 border-red-300 hover:bg-red-50"
+                >
+                  Submit
+                </Button>
+              </div>
               <Button
                 onClick={() => {
                   setShowReasons(false)
