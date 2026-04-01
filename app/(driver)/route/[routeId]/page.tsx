@@ -73,12 +73,9 @@ export default function RoutePage() {
     }
   }, [driverInitials, selectedStopIndex, loadStops])
 
-  // Supabase Realtime — instant pickup status updates
+  // Supabase Realtime — apply pickup events directly to local state (no refetch)
   useEffect(() => {
     if (!driverInitials || !routeId) return
-
-    const stopIds = stops.map((s) => s.id)
-    if (stopIds.length === 0) return
 
     const channel = supabase
       .channel(`route-${routeId}-pickups`)
@@ -91,9 +88,21 @@ export default function RoutePage() {
         },
         (payload) => {
           const newEvent = payload.new as PickupEvent
-          if (stopIds.includes(newEvent.stop_id)) {
-            loadStops()
-          }
+          // Patch directly into local state — no round-trip
+          setStops((prev) => {
+            const match = prev.find((s) => s.id === newEvent.stop_id)
+            if (!match) return prev // not our route
+            // Only apply if newer than what we have
+            const existing = match.latest_pickup
+            if (existing && new Date(existing.timestamp) >= new Date(newEvent.timestamp)) {
+              return prev
+            }
+            return prev.map((s) =>
+              s.id === newEvent.stop_id
+                ? { ...s, latest_pickup: newEvent }
+                : s
+            )
+          })
         }
       )
       .subscribe()
@@ -101,8 +110,7 @@ export default function RoutePage() {
     return () => {
       supabase.removeChannel(channel)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driverInitials, routeId, stops.length, loadStops]) // re-subscribe when stop list changes
+  }, [driverInitials, routeId])
 
   const handleStartRoute = (initials: string) => {
     setDriverInitials(initials)

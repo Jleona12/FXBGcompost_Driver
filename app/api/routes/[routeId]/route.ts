@@ -17,7 +17,7 @@ export async function GET(
       )
     }
 
-    // Fetch stops with customer info and their pickup events
+    // Fetch stops with customer info and only the latest pickup event per stop
     const { data: stops, error } = await supabase
       .from('stops')
       .select(`
@@ -37,15 +37,17 @@ export async function GET(
       )
     }
 
-    // Transform: attach the latest pickup event to each stop
+    // Attach only the latest pickup event to each stop
     const stopsWithStatus = (stops || []).map((stop: any) => {
       const events = stop.pickup_events || []
-      // Sort by timestamp descending to get the latest
-      const latest = events.sort(
-        (a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      )[0] || null
+      // Pick the most recent event by timestamp
+      let latest = null
+      for (const e of events) {
+        if (!latest || e.timestamp > latest.timestamp) {
+          latest = e
+        }
+      }
 
-      // Remove the raw array, attach just the latest
       const { pickup_events, ...rest } = stop
       return {
         ...rest,
