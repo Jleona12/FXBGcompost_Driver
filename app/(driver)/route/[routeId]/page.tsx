@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { StopWithStatus, PickupEvent, BatchStopOrderUpdate } from '@/lib/types'
-import { fetchStopsByRoute } from '@/lib/data/stops'
+import { fetchInstanceStops } from '@/lib/data/instances'
 import { supabase } from '@/lib/supabase'
 import InitialsPrompt from '@/components/InitialsPrompt'
 import StopList from '@/components/StopList'
@@ -18,7 +18,7 @@ const POLL_INTERVAL = 30_000 // 30s fallback (Realtime handles instant updates)
 export default function RoutePage() {
   const params = useParams()
   const router = useRouter()
-  const routeId = params?.routeId as string
+  const routeId = params?.routeId as string // this is now an instance ID
 
   const [stops, setStops] = useState<StopWithStatus[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,8 +31,8 @@ export default function RoutePage() {
     try {
       setError(null)
 
-      const routeIdNum = Number(routeId)
-      const { data, error: fetchError } = await fetchStopsByRoute(routeIdNum)
+      const instanceId = Number(routeId)
+      const { data, error: fetchError } = await fetchInstanceStops(instanceId)
 
       if (fetchError) {
         setError('Failed to load route stops. Please try again.')
@@ -59,7 +59,6 @@ export default function RoutePage() {
   // Fallback poll — catches anything Realtime misses (e.g. reconnecting after phone sleep)
   useEffect(() => {
     if (!driverInitials || selectedStopIndex !== null) {
-      // Don't poll before login or while in detail view
       if (pollRef.current) clearInterval(pollRef.current)
       return
     }
@@ -78,27 +77,25 @@ export default function RoutePage() {
     if (!driverInitials || !routeId) return
 
     const channel = supabase
-      .channel(`route-${routeId}-pickups`)
+      .channel(`instance-${routeId}-pickups`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'pickup_events',
+          table: 'v2_pickup_events',
         },
         (payload) => {
           const newEvent = payload.new as PickupEvent
-          // Patch directly into local state — no round-trip
           setStops((prev) => {
-            const match = prev.find((s) => s.id === newEvent.stop_id)
-            if (!match) return prev // not our route
-            // Only apply if newer than what we have
+            const match = prev.find((s) => s.id === newEvent.instance_stop_id)
+            if (!match) return prev
             const existing = match.latest_pickup
             if (existing && new Date(existing.timestamp) >= new Date(newEvent.timestamp)) {
               return prev
             }
             return prev.map((s) =>
-              s.id === newEvent.stop_id
+              s.id === newEvent.instance_stop_id
                 ? { ...s, latest_pickup: newEvent }
                 : s
             )
@@ -121,7 +118,7 @@ export default function RoutePage() {
   }
 
   const handlePickupLogged = (stopId: number, completed: boolean, notes?: string) => {
-    // Optimistic update — show the change immediately
+    // Optimistic update
     setStops((prev) =>
       prev.map((s) =>
         s.id === stopId
@@ -129,7 +126,7 @@ export default function RoutePage() {
               ...s,
               latest_pickup: {
                 id: 0,
-                stop_id: stopId,
+                instance_stop_id: stopId,
                 driver_initials: driverInitials!,
                 completed,
                 notes: notes || undefined,
@@ -140,17 +137,11 @@ export default function RoutePage() {
       )
     )
     setSelectedStopIndex(null)
-    // No loadStops() here — Realtime subscription will bring in the
-    // authoritative event, and the 30s fallback poll handles drift.
-    // Calling loadStops() here caused a race condition where the API
-    // returned stale data and overwrote the optimistic/Realtime state.
   }
 
   const handleReorder = async (updates: BatchStopOrderUpdate[]) => {
-    // Optimistic local reorder already handled by StopList
-    // Persist to server
     try {
-      const response = await fetch(`/api/routes/${routeId}/reorder`, {
+      const response = await fetch(`/api/instances/${routeId}/reorder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ updates }),
@@ -158,7 +149,6 @@ export default function RoutePage() {
 
       if (!response.ok) {
         console.error('Failed to save reorder')
-        // Reload to get server truth
         loadStops()
       }
     } catch {
@@ -210,7 +200,7 @@ export default function RoutePage() {
     )
   }
 
-  // Initials Prompt (before viewing route)
+  // Initials Prompt
   if (!driverInitials) {
     return (
       <InitialsPrompt
@@ -221,7 +211,7 @@ export default function RoutePage() {
     )
   }
 
-  // Stop Detail view (when a stop is selected)
+  // Stop Detail view
   if (selectedStopIndex !== null && stops[selectedStopIndex]) {
     return (
       <StopDetail

@@ -15,7 +15,7 @@ interface AdminLayoutProps {
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/customers', label: 'Customers', icon: Users },
-  { href: '/admin/routes', label: 'Routes', icon: Route },
+  { href: '/admin/templates', label: 'Templates', icon: Route },
   { href: '/admin/pickups', label: 'Pickups', icon: ClipboardCheck },
 ]
 

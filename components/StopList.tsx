@@ -122,7 +122,7 @@ function SortableStopRow({
                 >
                   {stop.customer.name}
                 </span>
-                {stop.flags && stop.flags.trim() && (
+                {stop.driver_notes && stop.driver_notes.trim() && (
                   <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
                 )}
               </div>

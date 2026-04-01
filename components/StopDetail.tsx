@@ -40,10 +40,10 @@ export default function StopDetail({
   const [error, setError] = useState<string | null>(null)
   const [showReasons, setShowReasons] = useState(false)
   const [otherReason, setOtherReason] = useState('')
-  const [driverNotes, setDriverNotes] = useState(stop.flags || '')
+  const [driverNotes, setDriverNotes] = useState(stop.driver_notes || '')
   const [savingNotes, setSavingNotes] = useState(false)
   const [notesSaved, setNotesSaved] = useState(false)
-  const notesChanged = driverNotes !== (stop.flags || '')
+  const notesChanged = driverNotes !== (stop.driver_notes || '')
 
   const pickup = stop.latest_pickup
   const isCollected = pickup?.completed === true
@@ -57,7 +57,7 @@ export default function StopDetail({
     setError(null)
 
     const payload: PickupEventPayload = {
-      stop_id: stop.id,
+      instance_stop_id: stop.id,
       driver_initials: driverInitials,
       completed,
       notes,
@@ -78,7 +78,7 @@ export default function StopDetail({
   const handleSaveNotes = async () => {
     setSavingNotes(true)
     try {
-      const response = await fetch(`/api/stops/${stop.id}/notes`, {
+      const response = await fetch(`/api/instance-stops/${stop.id}/notes`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ driver_notes: driverNotes }),

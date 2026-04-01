@@ -1,4 +1,8 @@
-// Database table types (matching live Supabase schema)
+// =============================================================
+// Database table types — V2 Templates + Instances architecture
+// =============================================================
+
+// Shared / unchanged
 export interface Customer {
   stripe_customer_id: string  // PRIMARY KEY
   name: string
@@ -7,35 +11,6 @@ export interface Customer {
   subscription_type?: string
   status?: string
   notes?: Record<string, any>  // jsonb
-}
-
-export interface Route {
-  id: number  // PRIMARY KEY (auto-increment)
-  date?: string
-  driver?: string
-  notes?: Record<string, any>  // jsonb
-}
-
-export interface Stop {
-  id: number  // PRIMARY KEY (auto-increment)
-  customer_id: string  // FK -> customers.stripe_customer_id
-  route_id: number  // FK -> routes.id
-  stop_type?: string
-  visible_to_driver?: boolean
-  stop_order: number
-  flags?: string  // text (not array)
-  flag_notes?: string
-  customer_flags?: string
-}
-
-export interface PickupEvent {
-  id: number  // PRIMARY KEY (auto-increment)
-  stop_id: number  // FK -> stops.id
-  driver_initials: string
-  notes?: string  // text (not jsonb)
-  completed: boolean
-  timestamp: string  // timestamptz
-  permanent?: boolean
 }
 
 export interface MessageState {
@@ -47,7 +22,183 @@ export interface MessageState {
   metadata?: Record<string, any>
 }
 
-// Combined types for UI display
+// --- V2: Templates ---
+
+export interface RouteTemplate {
+  id: number
+  name: string
+  frequency: string        // 'weekly' | 'biweekly' | 'monthly'
+  notes?: Record<string, any>
+  is_active: boolean
+  created_at: string
+}
+
+export interface TemplateStop {
+  id: number
+  template_id: number
+  customer_id: string
+  stop_order: number
+  stop_type: string
+  driver_notes?: string
+  created_at: string
+}
+
+export interface TemplateStopWithCustomer extends TemplateStop {
+  customer: Customer
+}
+
+export interface RouteTemplateWithStops extends RouteTemplate {
+  stops: TemplateStopWithCustomer[]
+}
+
+export interface RouteTemplateWithStopCount extends RouteTemplate {
+  stop_count: number
+}
+
+// --- V2: Instances ---
+
+export interface RouteInstance {
+  id: number
+  template_id: number
+  date: string
+  status: string           // 'active' | 'archived'
+  notes?: Record<string, any>
+  created_at: string
+}
+
+export interface RouteInstanceWithTemplate extends RouteInstance {
+  template: RouteTemplate
+}
+
+export interface InstanceStop {
+  id: number
+  instance_id: number
+  template_stop_id?: number
+  customer_id: string
+  stop_order: number
+  stop_type: string
+  driver_notes?: string
+  visible_to_driver: boolean
+  created_at: string
+}
+
+export interface InstanceStopWithCustomer extends InstanceStop {
+  customer: Customer
+}
+
+// --- V2: Pickup Events ---
+
+export interface PickupEvent {
+  id: number
+  instance_stop_id: number
+  driver_initials: string
+  completed: boolean
+  notes?: string
+  timestamp: string
+}
+
+// Driver view — instance stop with customer + latest pickup
+export interface StopWithStatus extends InstanceStopWithCustomer {
+  latest_pickup?: PickupEvent
+}
+
+// Driver home — instance with template name for display
+export interface InstanceForDriver extends RouteInstance {
+  template_name: string
+  stop_count: number
+}
+
+// --- Payloads ---
+
+export interface CreateTemplatePayload {
+  name: string
+  frequency?: string
+  notes?: Record<string, any>
+}
+
+export interface UpdateTemplatePayload {
+  name?: string
+  frequency?: string
+  notes?: Record<string, any>
+  is_active?: boolean
+}
+
+export interface CreateTemplateStopPayload {
+  template_id: number
+  customer_id: string
+  stop_order: number
+  stop_type?: string
+  driver_notes?: string
+}
+
+export interface ActivateTemplatePayload {
+  date: string
+  // Stops to include (allows removing/reordering at activation time)
+  stops: {
+    template_stop_id: number
+    customer_id: string
+    stop_order: number
+    stop_type: string
+    driver_notes?: string
+    visible_to_driver: boolean
+  }[]
+}
+
+export interface PickupEventPayload {
+  instance_stop_id: number
+  driver_initials: string
+  completed: boolean
+  notes?: string
+}
+
+export interface BatchStopOrderUpdate {
+  stop_id: number
+  stop_order: number
+}
+
+// --- Admin pickup history ---
+
+export interface PickupEventWithDetails extends PickupEvent {
+  instance_stop?: {
+    id: number
+    stop_order: number
+    stop_type: string
+    customer: Customer
+    instance: RouteInstance
+  }
+  // Legacy field for backward compat with existing pickups page
+  stop?: {
+    id: number
+    stop_order: number
+    stop_type?: string
+    customer: Customer
+    route: Route
+  }
+}
+
+// =============================================================
+// Legacy types — kept for backward compatibility during migration
+// =============================================================
+
+export interface Route {
+  id: number
+  date?: string
+  driver?: string
+  notes?: Record<string, any>
+}
+
+export interface Stop {
+  id: number
+  customer_id: string
+  route_id: number
+  stop_type?: string
+  visible_to_driver?: boolean
+  stop_order: number
+  flags?: string
+  flag_notes?: string
+  customer_flags?: string
+}
+
 export interface StopWithCustomer extends Stop {
   customer: Customer
 }
@@ -56,42 +207,25 @@ export interface RouteWithStops extends Route {
   stops: StopWithCustomer[]
 }
 
-// Validation types
-export interface PickupEventPayload {
-  stop_id: number
-  driver_initials: string
-  completed: boolean
-  notes?: string
-}
-
-// Admin types - Route with stop count for list view
 export interface RouteWithStopCount extends Route {
   stop_count: number
 }
 
-// Admin types - Stop with latest pickup status for driver view
-export interface StopWithStatus extends StopWithCustomer {
-  latest_pickup?: PickupEvent
-}
-
-// Admin payloads - Create route
 export interface CreateRoutePayload {
   date?: string
   driver?: string
   notes?: Record<string, any>
 }
 
-// Admin payloads - Update route
 export interface UpdateRoutePayload {
   date?: string
   driver?: string
   notes?: Record<string, any>
 }
 
-// Admin payloads - Create stop
 export interface CreateStopPayload {
   route_id: number
-  customer_id: string  // stripe_customer_id
+  customer_id: string
   stop_order: number
   stop_type?: string
   visible_to_driver?: boolean
@@ -99,28 +233,10 @@ export interface CreateStopPayload {
   flag_notes?: string
 }
 
-// Admin payloads - Update stop
 export interface UpdateStopPayload {
   stop_order?: number
   stop_type?: string
   visible_to_driver?: boolean
   flags?: string
   flag_notes?: string
-}
-
-// Admin payloads - Batch update stop orders
-export interface BatchStopOrderUpdate {
-  stop_id: number
-  stop_order: number
-}
-
-// Admin types - Pickup event with full context for dashboard
-export interface PickupEventWithDetails extends PickupEvent {
-  stop: {
-    id: number
-    stop_order: number
-    stop_type?: string
-    customer: Customer
-    route: Route
-  }
 }

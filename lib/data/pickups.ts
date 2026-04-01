@@ -9,16 +9,13 @@ export interface CreatePickupResult {
 }
 
 /**
- * Creates a pickup event - handles both online API submission and offline queueing
- * CRITICAL: Preserves existing offline queue behavior exactly
- * @param payload - Pickup event data
- * @returns Result object with success/error status
+ * Creates a pickup event — handles both online API submission and offline queueing
+ * V2: Posts to /api/v2-pickups with instance_stop_id
  */
 export async function createPickupEvent(
   payload: PickupEventPayload
 ): Promise<CreatePickupResult> {
   try {
-    // Check if online - PRESERVE OFFLINE QUEUE LOGIC
     if (!isOnline()) {
       console.log('[data/pickups] Offline mode - queueing pickup event')
       queuePickupEvent(payload)
@@ -29,9 +26,8 @@ export async function createPickupEvent(
       }
     }
 
-    // Submit to API - PRESERVE EXACT REQUEST
     console.log('[data/pickups] Submitting pickup event online')
-    const response = await fetch('/api/pickups', {
+    const response = await fetch('/api/v2-pickups', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -48,10 +44,7 @@ export async function createPickupEvent(
     }
 
     console.log('[data/pickups] Pickup event created successfully:', data.id)
-    return {
-      success: true,
-      data
-    }
+    return { success: true, data }
   } catch (err) {
     console.error('[data/pickups] Unexpected createPickupEvent error:', err)
     return {
