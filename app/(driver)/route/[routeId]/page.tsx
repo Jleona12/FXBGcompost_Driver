@@ -140,9 +140,10 @@ export default function RoutePage() {
       )
     )
     setSelectedStopIndex(null)
-
-    // Background refresh to sync with server
-    loadStops()
+    // No loadStops() here — Realtime subscription will bring in the
+    // authoritative event, and the 30s fallback poll handles drift.
+    // Calling loadStops() here caused a race condition where the API
+    // returned stale data and overwrote the optimistic/Realtime state.
   }
 
   const handleReorder = async (updates: BatchStopOrderUpdate[]) => {

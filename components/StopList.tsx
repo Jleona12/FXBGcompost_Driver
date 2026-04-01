@@ -325,8 +325,10 @@ function stopsDataChanged(a: StopWithStatus[], b: StopWithStatus[]): boolean {
     const aPickup = a[i].latest_pickup
     const bPickup = b[i].latest_pickup
     if (a[i].id !== b[i].id) return true
+    if (aPickup?.id !== bPickup?.id) return true
     if (aPickup?.completed !== bPickup?.completed) return true
     if (aPickup?.driver_initials !== bPickup?.driver_initials) return true
+    if (aPickup?.notes !== bPickup?.notes) return true
   }
   return false
 }
