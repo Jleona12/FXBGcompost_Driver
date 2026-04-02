@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import OfflineIndicator from '@/components/OfflineIndicator'
+import CacheBuster from '@/components/CacheBuster'
 
 export const metadata: Metadata = {
   title: 'FXBG Compost Driver',
@@ -33,6 +34,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <body>
+        <CacheBuster />
         <OfflineIndicator />
         {children}
       </body>

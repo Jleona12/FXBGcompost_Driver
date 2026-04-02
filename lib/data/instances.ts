@@ -1,5 +1,11 @@
 import { InstanceForDriver, StopWithStatus } from '@/lib/types'
 
+// Cache-bust: append timestamp so service worker never serves stale data
+function fresh(url: string): string {
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}_t=${Date.now()}`
+}
+
 // --- Driver-facing: fetch active instances ---
 
 export async function fetchActiveInstances(): Promise<{
@@ -7,7 +13,7 @@ export async function fetchActiveInstances(): Promise<{
   error: Error | null
 }> {
   try {
-    const response = await fetch('/api/instances', { cache: 'no-store' })
+    const response = await fetch(fresh('/api/instances'), { cache: 'no-store' })
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
@@ -27,7 +33,7 @@ export async function fetchInstanceStops(
     if (isNaN(instanceId) || instanceId < 1) {
       return { data: null, error: new Error('Invalid instance ID') }
     }
-    const response = await fetch(`/api/instances/${instanceId}`, { cache: 'no-store' })
+    const response = await fetch(fresh(`/api/instances/${instanceId}`), { cache: 'no-store' })
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
@@ -48,7 +54,7 @@ export async function fetchAdminInstances(status?: string): Promise<{
     const url = status
       ? `/api/admin/instances?status=${status}`
       : '/api/admin/instances'
-    const response = await fetch(url)
+    const response = await fetch(fresh(url), { cache: 'no-store' })
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }

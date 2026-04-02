@@ -7,6 +7,12 @@ import {
   BatchStopOrderUpdate,
 } from '@/lib/types'
 
+// Cache-bust: append timestamp so service worker never serves stale data
+function fresh(url: string): string {
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}_t=${Date.now()}`
+}
+
 // --- Template CRUD ---
 
 export async function fetchTemplates(): Promise<{
@@ -14,7 +20,7 @@ export async function fetchTemplates(): Promise<{
   error: Error | null
 }> {
   try {
-    const response = await fetch('/api/admin/templates')
+    const response = await fetch(fresh('/api/admin/templates'), { cache: 'no-store' })
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
@@ -29,7 +35,7 @@ export async function fetchTemplateForEdit(
   templateId: number
 ): Promise<{ data: RouteTemplateWithStops | null; error: Error | null }> {
   try {
-    const response = await fetch(`/api/admin/templates/${templateId}`)
+    const response = await fetch(fresh(`/api/admin/templates/${templateId}`), { cache: 'no-store' })
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
