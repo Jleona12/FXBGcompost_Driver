@@ -177,3 +177,44 @@ export async function activateTemplate(
     return { data: null, error: err instanceof Error ? err : new Error('Network error') }
   }
 }
+
+// --- One-tap Send to Driver ---
+
+export async function sendToDriver(
+  templateId: number,
+  date?: string
+): Promise<{ data: any; error: Error | null }> {
+  try {
+    const response = await fetch(`/api/admin/templates/${templateId}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date }),
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
+    }
+    return { data: await response.json(), error: null }
+  } catch (err) {
+    return { data: null, error: err instanceof Error ? err : new Error('Network error') }
+  }
+}
+
+// --- Copy Route ---
+
+export async function copyTemplate(
+  templateId: number
+): Promise<{ data: RouteTemplateWithStopCount | null; error: Error | null }> {
+  try {
+    const response = await fetch(`/api/admin/templates/${templateId}/copy`, {
+      method: 'POST',
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
+    }
+    return { data: await response.json(), error: null }
+  } catch (err) {
+    return { data: null, error: err instanceof Error ? err : new Error('Network error') }
+  }
+}

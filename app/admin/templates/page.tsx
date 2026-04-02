@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { RouteTemplateWithStopCount, InstanceForDriver } from '@/lib/types'
-import { fetchTemplates, deleteTemplate } from '@/lib/data/templates'
+import { fetchTemplates, deleteTemplate, sendToDriver, copyTemplate } from '@/lib/data/templates'
 import { fetchAdminInstances, deleteInstance } from '@/lib/data/instances'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -17,10 +17,12 @@ import {
   RefreshCw,
   ChevronRight,
   Trash2,
-  Play,
+  Send,
   MapPin,
   Calendar,
   Archive,
+  Copy,
+  Loader2,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { parseLocalDate } from '@/lib/utils'
@@ -30,6 +32,8 @@ export default function TemplatesPage() {
   const [instances, setInstances] = useState<InstanceForDriver[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sendingId, setSendingId] = useState<number | null>(null)
+  const [copyingId, setCopyingId] = useState<number | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'template' | 'instance'; id: number } | null>(null)
 
   const load = useCallback(async () => {
@@ -54,6 +58,36 @@ export default function TemplatesPage() {
   useEffect(() => {
     load()
   }, [load])
+
+  const handleSendToDriver = async (templateId: number) => {
+    setSendingId(templateId)
+    setError(null)
+
+    const { data, error: sendError } = await sendToDriver(templateId)
+
+    if (sendError) {
+      setError(sendError.message)
+    } else if (data) {
+      setInstances(prev => [data, ...prev])
+    }
+
+    setSendingId(null)
+  }
+
+  const handleCopyRoute = async (templateId: number) => {
+    setCopyingId(templateId)
+    setError(null)
+
+    const { data, error: copyError } = await copyTemplate(templateId)
+
+    if (copyError) {
+      setError(copyError.message)
+    } else if (data) {
+      setTemplates(prev => [...prev, data])
+    }
+
+    setCopyingId(null)
+  }
 
   const handleDeleteTemplate = async (id: number) => {
     if (!deleteConfirm || deleteConfirm.type !== 'template' || deleteConfirm.id !== id) {
@@ -84,7 +118,7 @@ export default function TemplatesPage() {
         <div>
           <h1 className="text-ios-large-title font-bold text-gray-900">Routes</h1>
           <p className="text-ios-body text-gray-600 mt-1">
-            Manage your pickup routes and start them for the week
+            Manage your pickup routes
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -146,7 +180,7 @@ export default function TemplatesPage() {
       {!loading && instances.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-ios-title-2 font-semibold text-gray-900 flex items-center gap-2">
-            <Play className="w-5 h-5 text-fxbg-green" />
+            <Send className="w-5 h-5 text-fxbg-green" />
             Active Routes ({instances.length})
           </h2>
           {instances.map(instance => (
@@ -202,27 +236,43 @@ export default function TemplatesPage() {
                     <h3 className="font-semibold text-ios-headline text-gray-900">
                       {template.name}
                     </h3>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {template.stop_count} stop{template.stop_count !== 1 ? 's' : ''}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {template.frequency}
-                      </Badge>
-                    </div>
+                    <Badge variant="secondary" className="mt-2 flex items-center gap-1 w-fit">
+                      <MapPin className="w-3 h-3" />
+                      {template.stop_count} stop{template.stop_count !== 1 ? 's' : ''}
+                    </Badge>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Link href={`/admin/templates/${template.id}/activate`}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-fxbg-green hover:text-fxbg-green hover:bg-green-50"
-                        title="Start route"
-                      >
-                        <Play className="w-4 h-4" />
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="bg-fxbg-green hover:bg-fxbg-green/90 text-white"
+                      disabled={sendingId === template.id || template.stop_count === 0}
+                      onClick={() => handleSendToDriver(template.id)}
+                      title="Send to Driver"
+                    >
+                      {sendingId === template.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-1" />
+                          Send
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-400 hover:text-gray-600"
+                      disabled={copyingId === template.id}
+                      onClick={() => handleCopyRoute(template.id)}
+                      title="Copy route"
+                    >
+                      {copyingId === template.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
                     <Link href={`/admin/templates/${template.id}/edit`}>
                       <Button
                         variant="ghost"
@@ -256,7 +306,7 @@ export default function TemplatesPage() {
           <Route className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-ios-headline text-gray-900 mb-1">No routes yet</h3>
           <p className="text-ios-body text-gray-500 mb-4">
-            Create your first recurring pickup route
+            Create your first pickup route
           </p>
           <Link href="/admin/templates/new">
             <Button className="bg-fxbg-green hover:bg-fxbg-green/90">

@@ -14,7 +14,6 @@ import { createTemplate } from '@/lib/data/templates'
 export default function CreateTemplatePage() {
   const router = useRouter()
   const [name, setName] = useState('')
-  const [frequency, setFrequency] = useState('weekly')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,7 +29,6 @@ export default function CreateTemplatePage() {
 
     const { data, error: createError } = await createTemplate({
       name: name.trim(),
-      frequency,
     })
 
     if (createError) {
@@ -86,21 +84,6 @@ export default function CreateTemplatePage() {
                 disabled={loading}
                 autoFocus
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="frequency">Frequency</Label>
-              <select
-                id="frequency"
-                value={frequency}
-                onChange={e => setFrequency(e.target.value)}
-                disabled={loading}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-              >
-                <option value="weekly">Weekly</option>
-                <option value="biweekly">Biweekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
             </div>
 
             <Button

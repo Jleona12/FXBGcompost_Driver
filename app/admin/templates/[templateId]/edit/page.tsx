@@ -40,7 +40,6 @@ export default function TemplateEditorPage() {
   const [showCustomerSelector, setShowCustomerSelector] = useState(false)
   const [showEditDetails, setShowEditDetails] = useState(false)
   const [editName, setEditName] = useState('')
-  const [editFrequency, setEditFrequency] = useState('weekly')
   const [savingDetails, setSavingDetails] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
 
@@ -62,7 +61,6 @@ export default function TemplateEditorPage() {
       setTemplate(data)
       setStops(data.stops || [])
       setEditName(data.name)
-      setEditFrequency(data.frequency)
     }
 
     setLoading(false)
@@ -147,12 +145,11 @@ export default function TemplateEditorPage() {
     setSavingDetails(true)
     const { error: updateError } = await updateTemplate(templateId, {
       name: editName.trim(),
-      frequency: editFrequency,
     })
     if (updateError) {
       setError(updateError.message)
     } else {
-      setTemplate(prev => prev ? { ...prev, name: editName.trim(), frequency: editFrequency } : prev)
+      setTemplate(prev => prev ? { ...prev, name: editName.trim() } : prev)
       setShowEditDetails(false)
     }
     setSavingDetails(false)
@@ -204,8 +201,8 @@ export default function TemplateEditorPage() {
               <CardTitle className="text-ios-title-1">
                 {template?.name}
               </CardTitle>
-              <p className="text-ios-body text-gray-600 mt-1 capitalize">
-                {template?.frequency}
+              <p className="text-ios-body text-gray-600 mt-1">
+                {stops.length} stop{stops.length !== 1 ? 's' : ''}
               </p>
             </div>
             <Button
@@ -232,20 +229,6 @@ export default function TemplateEditorPage() {
                 onChange={e => setEditName(e.target.value)}
                 disabled={savingDetails}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-freq">Frequency</Label>
-              <select
-                id="edit-freq"
-                value={editFrequency}
-                onChange={e => setEditFrequency(e.target.value)}
-                disabled={savingDetails}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-              >
-                <option value="weekly">Weekly</option>
-                <option value="biweekly">Biweekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
             </div>
             <Button
               onClick={handleSaveDetails}
