@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { GripVertical, MapPin, Phone, Trash2, Eye, EyeOff } from 'lucide-react'
+import { GripVertical, MapPin, Phone, Trash2 } from 'lucide-react'
 import { Customer } from '@/lib/types'
 import { formatPhoneNumber } from '@/lib/utils'
 
@@ -13,7 +13,6 @@ interface AdminStop {
   id: number
   stop_order: number
   stop_type?: string
-  visible_to_driver?: boolean
   flags?: string
   customer: Customer
 }
@@ -21,13 +20,11 @@ interface AdminStop {
 interface SortableStopCardProps {
   stop: AdminStop
   onDelete: (stopId: number) => void
-  onToggleVisibility: (stopId: number, visible: boolean) => void
 }
 
 export default function SortableStopCard({
   stop,
   onDelete,
-  onToggleVisibility
 }: SortableStopCardProps) {
   const {
     attributes,
@@ -46,7 +43,7 @@ export default function SortableStopCard({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className={`${isDragging ? 'shadow-lg' : ''} ${!stop.visible_to_driver ? 'opacity-60' : ''}`}>
+      <Card className={isDragging ? 'shadow-lg' : ''}>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             {/* Drag handle */}
@@ -95,29 +92,11 @@ export default function SortableStopCard({
                     Has instructions
                   </Badge>
                 )}
-                {!stop.visible_to_driver && (
-                  <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
-                    Hidden
-                  </Badge>
-                )}
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-gray-600"
-                onClick={() => onToggleVisibility(stop.id, !stop.visible_to_driver)}
-                title={stop.visible_to_driver ? 'Hide from driver' : 'Show to driver'}
-              >
-                {stop.visible_to_driver ? (
-                  <Eye className="w-4 h-4" />
-                ) : (
-                  <EyeOff className="w-4 h-4" />
-                )}
-              </Button>
               <Button
                 variant="ghost"
                 size="icon"

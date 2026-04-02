@@ -26,7 +26,7 @@ export async function POST(
         stop_order: body.stop_order || 1,
         stop_type: body.stop_type || 'pickup',
         driver_notes: body.driver_notes || null,
-        visible_to_driver: body.visible_to_driver !== false,
+        visible_to_driver: true,
       })
       .select('*, customer:customers(*)')
       .single()

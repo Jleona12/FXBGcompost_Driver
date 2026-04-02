@@ -23,7 +23,6 @@ interface AdminStop {
   id: number
   stop_order: number
   stop_type?: string
-  visible_to_driver?: boolean
   flags?: string
   customer: Customer
 }
@@ -32,14 +31,12 @@ interface SortableStopListProps {
   stops: AdminStop[]
   onReorder: (updates: BatchStopOrderUpdate[]) => void
   onDelete: (stopId: number) => void
-  onToggleVisibility: (stopId: number, visible: boolean) => void
 }
 
 export default function SortableStopList({
   stops,
   onReorder,
   onDelete,
-  onToggleVisibility
 }: SortableStopListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -99,7 +96,6 @@ export default function SortableStopList({
               key={stop.id}
               stop={stop}
               onDelete={onDelete}
-              onToggleVisibility={onToggleVisibility}
             />
           ))}
         </div>

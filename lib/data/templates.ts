@@ -162,28 +162,6 @@ export async function batchUpdateTemplateStopOrders(
   }
 }
 
-// --- Activate Template ---
-
-export async function activateTemplate(
-  templateId: number,
-  payload: { date: string; stops: any[]; notes?: any }
-): Promise<{ data: any; error: Error | null }> {
-  try {
-    const response = await fetch(`/api/admin/templates/${templateId}/activate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}))
-      return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
-    }
-    return { data: await response.json(), error: null }
-  } catch (err) {
-    return { data: null, error: err instanceof Error ? err : new Error('Network error') }
-  }
-}
-
 // --- One-tap Send to Driver ---
 
 export async function sendToDriver(

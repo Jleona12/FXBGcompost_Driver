@@ -280,7 +280,6 @@ export default function TemplateEditorPage() {
           stops={stopsForList}
           onReorder={handleReorder}
           onDelete={handleDeleteStop}
-          onToggleVisibility={() => {}}
         />
       </div>
 

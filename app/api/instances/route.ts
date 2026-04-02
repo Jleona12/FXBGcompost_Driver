@@ -29,13 +29,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch routes' }, { status: 500 })
     }
 
-    // Get stop counts
+    // Get stop counts (all stops — no visibility filter)
     const instanceIds = (instances || []).map(i => i.id)
     const { data: stops } = await supabase
       .from('instance_stops')
       .select('instance_id')
       .in('instance_id', instanceIds.length > 0 ? instanceIds : [-1])
-      .eq('visible_to_driver', true)
 
     const countMap: Record<number, number> = {}
     for (const s of stops || []) {

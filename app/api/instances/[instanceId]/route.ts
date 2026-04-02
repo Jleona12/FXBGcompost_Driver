@@ -30,22 +30,11 @@ export async function GET(
       .from('instance_stops')
       .select('*, customer:customers(*), pickup_events:v2_pickup_events(*)')
       .eq('instance_id', instanceId)
-      .eq('visible_to_driver', true)
       .order('stop_order', { ascending: true })
 
     if (error) {
       console.error('Error fetching instance stops:', error)
       return NextResponse.json({ error: 'Failed to fetch stops' }, { status: 500 })
-    }
-
-    if (!stops || stops.length === 0) {
-      console.error('No stops found for instance:', instanceId, '- checking without visibility filter')
-      // Debug: check if stops exist without the visibility filter
-      const { data: allStops } = await supabase
-        .from('instance_stops')
-        .select('id, visible_to_driver')
-        .eq('instance_id', instanceId)
-      console.error('All stops for instance (no filter):', allStops?.length ?? 0, allStops)
     }
 
     // Attach latest pickup to each stop

@@ -78,7 +78,6 @@ export interface InstanceStop {
   stop_order: number
   stop_type: string
   driver_notes?: string
-  visible_to_driver: boolean
   created_at: string
 }
 
@@ -129,19 +128,6 @@ export interface CreateTemplateStopPayload {
   stop_order: number
   stop_type?: string
   driver_notes?: string
-}
-
-export interface ActivateTemplatePayload {
-  date: string
-  // Stops to include (allows removing/reordering at activation time)
-  stops: {
-    template_stop_id: number
-    customer_id: string
-    stop_order: number
-    stop_type: string
-    driver_notes?: string
-    visible_to_driver: boolean
-  }[]
 }
 
 export interface PickupEventPayload {
