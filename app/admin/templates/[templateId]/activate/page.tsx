@@ -181,7 +181,7 @@ export default function ActivateTemplatePage() {
       <Link href="/admin/templates">
         <Button variant="ghost" className="gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Back to Templates
+          Back to Routes
         </Button>
       </Link>
 
@@ -191,7 +191,7 @@ export default function ActivateTemplatePage() {
           Start Route
         </h1>
         <p className="text-ios-body text-gray-600 mt-1">
-          Review and customize <strong>{template?.name}</strong> before activating
+          Review and customize <strong>{template?.name}</strong> before starting
         </p>
       </div>
 
@@ -303,7 +303,7 @@ export default function ActivateTemplatePage() {
 
         {activationStops.length === 0 && (
           <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-            <p className="text-ios-body text-gray-500">No stops in this template</p>
+            <p className="text-ios-body text-gray-500">No stops in this route</p>
           </div>
         )}
       </div>

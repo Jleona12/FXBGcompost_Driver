@@ -55,15 +55,15 @@ export default function OfflineIndicator() {
     try {
       // Attempt to sync each queued event
       const syncPromises = queued.map((event) =>
-        fetch('/api/pickups', {
+        fetch('/api/v2-pickups', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            stop_id: event.stop_id,
+            instance_stop_id: event.instance_stop_id,
             driver_initials: event.driver_initials,
-            completion_status: event.completion_status,
+            completed: event.completed,
             notes: event.notes,
           }),
         })

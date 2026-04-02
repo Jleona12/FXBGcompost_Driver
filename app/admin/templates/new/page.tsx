@@ -51,14 +51,14 @@ export default function CreateTemplatePage() {
       <Link href="/admin/templates">
         <Button variant="ghost" className="gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Back to Templates
+          Back to Routes
         </Button>
       </Link>
 
       <div>
-        <h1 className="text-ios-large-title font-bold text-gray-900">Create Template</h1>
+        <h1 className="text-ios-large-title font-bold text-gray-900">Create Route</h1>
         <p className="text-ios-body text-gray-600 mt-1">
-          Name your recurring route, then add customers
+          Name your route, then add customers
         </p>
       </div>
 
@@ -71,12 +71,12 @@ export default function CreateTemplatePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-ios-title-3">Template Details</CardTitle>
+          <CardTitle className="text-ios-title-3">Route Details</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Template Name</Label>
+              <Label htmlFor="name">Route Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -114,7 +114,7 @@ export default function CreateTemplatePage() {
                   Creating...
                 </>
               ) : (
-                'Create Template'
+                'Create Route'
               )}
             </Button>
           </form>

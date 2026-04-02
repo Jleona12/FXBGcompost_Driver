@@ -19,8 +19,8 @@ describe('admin auth middleware', () => {
     expect(res.status).not.toBe(401)
   })
 
-  it('blocks unauthenticated requests to /api/admin/routes', async () => {
-    const req = createRequest('/api/admin/routes')
+  it('blocks unauthenticated requests to /api/admin/templates', async () => {
+    const req = createRequest('/api/admin/templates')
     const res = middleware(req)
     expect(res.status).toBe(401)
 
@@ -29,7 +29,7 @@ describe('admin auth middleware', () => {
   })
 
   it('blocks requests with wrong cookie value', async () => {
-    const req = createRequest('/api/admin/routes', {
+    const req = createRequest('/api/admin/templates', {
       name: 'admin_auth',
       value: 'wrong-value',
     })
@@ -38,7 +38,7 @@ describe('admin auth middleware', () => {
   })
 
   it('allows authenticated requests through', () => {
-    const req = createRequest('/api/admin/routes', {
+    const req = createRequest('/api/admin/templates', {
       name: 'admin_auth',
       value: 'authenticated',
     })
@@ -53,7 +53,7 @@ describe('admin auth middleware', () => {
   })
 
   it('allows authenticated requests to nested admin paths', () => {
-    const req = createRequest('/api/admin/stops/batch', {
+    const req = createRequest('/api/admin/instances/1', {
       name: 'admin_auth',
       value: 'authenticated',
     })

@@ -82,9 +82,9 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-ios-large-title font-bold text-gray-900">Templates</h1>
+          <h1 className="text-ios-large-title font-bold text-gray-900">Routes</h1>
           <p className="text-ios-body text-gray-600 mt-1">
-            Manage reusable route templates and activate them for pickup days
+            Manage your pickup routes and start them for the week
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function TemplatesPage() {
           <Link href="/admin/templates/new">
             <Button className="bg-fxbg-green hover:bg-fxbg-green/90">
               <Plus className="w-4 h-4 mr-2" />
-              New Template
+              New Route
             </Button>
           </Link>
         </div>
@@ -106,7 +106,7 @@ export default function TemplatesPage() {
           <AlertDescription className="flex items-center justify-between">
             <span>
               {deleteConfirm.type === 'template'
-                ? 'Retire this template? It will be hidden but not deleted.'
+                ? 'Retire this route? It will be hidden but not deleted.'
                 : 'Delete this active route? Pickup data will be lost.'}
             </span>
             <div className="flex gap-2">
@@ -192,7 +192,7 @@ export default function TemplatesPage() {
         <div className="space-y-3">
           <h2 className="text-ios-title-2 font-semibold text-gray-900 flex items-center gap-2">
             <Route className="w-5 h-5 text-gray-500" />
-            Templates ({templates.length})
+            Your Routes ({templates.length})
           </h2>
           {templates.map(template => (
             <Card key={template.id} className="hover:bg-accent/50 transition-all">
@@ -228,7 +228,7 @@ export default function TemplatesPage() {
                         variant="ghost"
                         size="icon"
                         className="text-gray-400 hover:text-gray-600"
-                        title="Edit template"
+                        title="Edit route"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </Button>
@@ -238,7 +238,7 @@ export default function TemplatesPage() {
                       size="icon"
                       className="text-gray-400 hover:text-red-500 hover:bg-red-50"
                       onClick={() => handleDeleteTemplate(template.id)}
-                      title="Retire template"
+                      title="Retire route"
                     >
                       <Archive className="w-4 h-4" />
                     </Button>
@@ -254,14 +254,14 @@ export default function TemplatesPage() {
       {!loading && !error && templates.length === 0 && instances.length === 0 && (
         <div className="text-center py-12">
           <Route className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-ios-headline text-gray-900 mb-1">No templates yet</h3>
+          <h3 className="text-ios-headline text-gray-900 mb-1">No routes yet</h3>
           <p className="text-ios-body text-gray-500 mb-4">
-            Create a template for your recurring routes
+            Create your first recurring pickup route
           </p>
           <Link href="/admin/templates/new">
             <Button className="bg-fxbg-green hover:bg-fxbg-green/90">
               <Plus className="w-4 h-4 mr-2" />
-              Create Template
+              Create Route
             </Button>
           </Link>
         </div>

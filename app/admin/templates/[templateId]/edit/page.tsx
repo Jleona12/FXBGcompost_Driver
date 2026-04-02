@@ -174,7 +174,7 @@ export default function TemplateEditorPage() {
         <Link href="/admin/templates">
           <Button variant="ghost" className="gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Back to Templates
+            Back to Routes
           </Button>
         </Link>
         <Alert variant="destructive">
@@ -192,7 +192,7 @@ export default function TemplateEditorPage() {
       <Link href="/admin/templates">
         <Button variant="ghost" className="gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Back to Templates
+          Back to Routes
         </Button>
       </Link>
 
@@ -225,7 +225,7 @@ export default function TemplateEditorPage() {
         {showEditDetails && (
           <CardContent className="border-t space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Template Name</Label>
+              <Label htmlFor="edit-name">Route Name</Label>
               <Input
                 id="edit-name"
                 value={editName}
@@ -269,7 +269,7 @@ export default function TemplateEditorPage() {
       {deleteConfirm && (
         <Alert>
           <AlertDescription className="flex items-center justify-between">
-            <span>Remove this stop from the template?</span>
+            <span>Remove this stop from the route?</span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>
                 Cancel

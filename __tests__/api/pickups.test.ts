@@ -19,7 +19,7 @@ vi.mock('@/lib/supabase', () => ({
                 return {
                   data: {
                     id: 1,
-                    stop_id: 1,
+                    instance_stop_id: 1,
                     driver_initials: 'JL',
                     completed: true,
                     timestamp: '2024-01-15T12:00:00Z',
@@ -35,11 +35,11 @@ vi.mock('@/lib/supabase', () => ({
   },
 }))
 
-import { POST } from '@/app/api/pickups/route'
+import { POST } from '@/app/api/v2-pickups/route'
 import { NextRequest } from 'next/server'
 
 function createPostRequest(body: Record<string, unknown>) {
-  return new NextRequest('http://localhost:3000/api/pickups', {
+  return new NextRequest('http://localhost:3000/api/v2-pickups', {
     method: 'POST',
     body: JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
@@ -50,18 +50,18 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('POST /api/pickups', () => {
-  it('returns 400 when stop_id is missing', async () => {
+describe('POST /api/v2-pickups', () => {
+  it('returns 400 when instance_stop_id is missing', async () => {
     const req = createPostRequest({ driver_initials: 'JL', completed: true })
     const res = await POST(req)
     expect(res.status).toBe(400)
 
     const body = await res.json()
-    expect(body.error).toContain('stop_id')
+    expect(body.error).toContain('instance_stop_id')
   })
 
   it('returns 400 when driver_initials is missing', async () => {
-    const req = createPostRequest({ stop_id: 1, completed: true })
+    const req = createPostRequest({ instance_stop_id: 1, completed: true })
     const res = await POST(req)
     expect(res.status).toBe(400)
 
@@ -71,7 +71,7 @@ describe('POST /api/pickups', () => {
 
   it('returns 400 when completed is not a boolean', async () => {
     const req = createPostRequest({
-      stop_id: 1,
+      instance_stop_id: 1,
       driver_initials: 'JL',
       completed: 'yes',
     })
@@ -81,7 +81,7 @@ describe('POST /api/pickups', () => {
 
   it('returns 400 for invalid driver initials format', async () => {
     const req = createPostRequest({
-      stop_id: 1,
+      instance_stop_id: 1,
       driver_initials: 'X',
       completed: true,
     })
@@ -94,7 +94,7 @@ describe('POST /api/pickups', () => {
 
   it('returns 201 with valid payload', async () => {
     const req = createPostRequest({
-      stop_id: 1,
+      instance_stop_id: 1,
       driver_initials: 'JL',
       completed: true,
       notes: 'Left at door',
@@ -105,15 +105,5 @@ describe('POST /api/pickups', () => {
     const body = await res.json()
     expect(body.id).toBe(1)
     expect(body.driver_initials).toBe('JL')
-  })
-
-  it('supports legacy completion_status field', async () => {
-    const req = createPostRequest({
-      stop_id: 1,
-      driver_initials: 'JL',
-      completion_status: true,
-    })
-    const res = await POST(req)
-    expect(res.status).toBe(201)
   })
 })
