@@ -1,282 +1,198 @@
-# FXBG Compost Driver PWA
+# FXBG Compost Driver — V2
 
-A Progressive Web Application for FXBG Compost drivers to manage pickup routes, view customer information, and log pickup events.
+Mobile-first web app for managing compost pickup routes in Fredericksburg, VA.
 
 ## Features
 
-- **Route Management**: View all available routes with metadata
-- **Stop Details**: See customer info, addresses, phone numbers, and special instructions (flags)
-- **Interactive Map**: Google Maps integration with markers for each stop
-- **Pickup Logging**: Log pickups with driver initials, notes, and completion status
-- **Offline Support**: Queue pickup events when offline, automatically sync when online
-- **Contact Integration**: Click-to-call and click-to-text links for customer communication
-- **PWA**: Installable on mobile devices, works offline
+- **Admin Panel:** Create route templates, add customer stops, one-tap "Send to Driver"
+- **Driver Dashboard:** See active routes in real-time, log pickups, reorder stops
+- **Realtime Updates:** Driver dashboard updates instantly when admin sends/removes routes
+- **Offline Support:** Pickup events queue to localStorage when offline, auto-sync when online
+- **Copy Routes:** Duplicate route templates for weekly reuse
 
 ## Tech Stack
 
-- **Framework**: Next.js 14+ (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS + Custom CSS
-- **Database**: Supabase (PostgreSQL)
-- **Maps**: Google Maps JavaScript API
-- **PWA**: next-pwa
-
-## Project Structure
-
-```
-FXBGcompost_Driver/
-├── app/
-│   ├── layout.tsx              # Root layout with PWA meta tags
-│   ├── page.tsx                # Start-up screen (route preview)
-│   ├── route/[routeId]/
-│   │   └── page.tsx            # Route detail view with stops
-│   ├── api/
-│   │   ├── routes/[routeId]/
-│   │   │   └── route.ts        # GET stops for route
-│   │   └── pickups/
-│   │       └── route.ts        # POST pickup events
-│   └── globals.css             # Global styles with FXBG brand colors
-├── components/
-│   ├── Header.tsx              # App header with logo
-│   ├── RouteList.tsx           # Route preview list
-│   ├── StopList.tsx            # List of stops for a route
-│   ├── StopCard.tsx            # Individual stop card
-│   ├── MapWidget.tsx           # Google Maps integration
-│   ├── ContactWidget.tsx       # Phone/text links
-│   ├── PickupLogger.tsx        # Logging interface
-│   └── OfflineIndicator.tsx    # Offline status indicator
-├── lib/
-│   ├── supabase.ts             # Supabase client
-│   ├── types.ts                # TypeScript types
-│   └── utils.ts                # Helper functions
-├── public/
-│   ├── manifest.json           # PWA manifest
-│   └── icons/                  # PWA icons (to be added)
-└── next.config.js              # Next.js config with PWA
-```
+- **Framework:** Next.js 14 (App Router) with TypeScript
+- **Database:** Supabase (PostgreSQL + Realtime)
+- **UI:** Tailwind CSS + Shadcn/UI (Radix primitives) + Lucide icons
+- **Deployment:** Vercel
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- Supabase account and project
-- Google Maps API key
+- Node.js 18+
+- Supabase project ([supabase.com](https://supabase.com))
 
 ### Installation
 
-1. Clone the repository:
-```bash
-cd /Users/jamesleonard/Documents/GitHub/FXBGcompost_Driver
-```
-
-2. Install dependencies:
 ```bash
 npm install
-```
-
-3. Create `.env.local` file (copy from `.env.local.example`):
-```bash
 cp .env.local.example .env.local
 ```
 
-4. Add your environment variables to `.env.local`:
+Edit `.env.local` with your credentials:
+
 ```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+ADMIN_PASSWORD=your-admin-password
 ```
 
-### Database Setup
+### Run
 
-Your Supabase database should have the following tables:
-
-#### `customers`
-- `id` (uuid, primary key)
-- `name` (text, required)
-- `email` (text)
-- `phone` (text)
-- `address` (text)
-- `stripe_customer_id` (text)
-- `subscription_type` (enum: weekly, biweekly, monthly)
-- `status` (enum: active, paused, cancelled)
-- `notes` (text)
-- `created_at` (timestamp)
-
-#### `routes`
-- `id` (uuid, primary key)
-- `route_id` (text, unique, required)
-- `date` (date)
-- `notes` (text)
-- `metadata` (jsonb)
-- `created_at` (timestamp)
-
-#### `stops`
-- `id` (uuid, primary key)
-- `route_id` (text, foreign key to routes.route_id)
-- `customer_id` (uuid, foreign key to customers.id)
-- `stop_order` (integer, required) - MUST be sequential (1, 2, 3...)
-- `stop_type` (enum: pickup, delivery, both)
-- `flags` (text[]) - Driver instructions like "long driveway", "gate code"
-- `notes` (text)
-- `created_at` (timestamp)
-
-#### `pickup_events`
-- `id` (uuid, primary key)
-- `stop_id` (uuid, foreign key to stops.id)
-- `driver_initials` (text, 2-3 characters, required)
-- `notes` (text)
-- `completion_status` (boolean, required)
-- `created_at` (timestamp, auto-set)
-
-### Running the App
-
-Development mode:
 ```bash
-npm run dev
+npm run dev        # http://localhost:3000 (driver view)
+                   # http://localhost:3000/admin (admin panel)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+## Architecture
 
-Production build:
-```bash
-npm run build
-npm start
+### Two-Sided App
+
+| Side | Auth | Data Access | Purpose |
+|------|------|-------------|---------|
+| **Driver** (`/`) | Public (no auth) | Direct Supabase queries from browser | View routes, log pickups |
+| **Admin** (`/admin`) | Password + cookie | Next.js API routes → Supabase | Manage templates, customers, send routes |
+
+### Why Direct Supabase for Drivers?
+
+The driver app queries Supabase directly from the browser instead of going through API routes. This eliminates every caching layer (Next.js server cache, Vercel CDN, service workers) and ensures the driver always sees live data. Admin operations still use API routes for server-side auth validation.
+
+### Data Flow
+
+```
+ADMIN:  Browser → fetch('/api/admin/...') → Next.js API Route → Supabase
+DRIVER: Browser → supabase.from('table').select() → Supabase (direct)
+DRIVER: Browser ← supabase.channel().on('postgres_changes') ← Supabase Realtime
 ```
 
-## Key Implementation Details
+## Database Schema (V2)
 
-### Database as Single Source of Truth
--The app adapts to the Supabase schema. Do not change DB shape without updating types and queries.
-- **READ-ONLY** for customers, stops, and routes in the app
-- All data is fetched dynamically from Supabase
-- Never hard-code customer or route data
+```
+route_templates ──→ template_stops ──→ customers
+       │
+       ↓ (Admin taps "Send")
+route_instances ──→ instance_stops ──→ customers
+                          │
+                          ↓ (Driver logs pickup)
+                   v2_pickup_events
+```
 
-### Append-Only Pickup Events
-- **NEVER update** previous pickup logs
-- Always **INSERT** new rows into `pickup_events` table
-- Each event includes:
-  - `driver_initials` (validated: 2-3 characters)
-  - `notes` (optional driver feedback)
-  - `completion_status` (boolean)
-  - `created_at` (auto-set by database)
+### Active Tables
 
-### Stop Order Requirements
-- `stop_order` must be sequential integers (1, 2, 3...)
-- NO fractional values (e.g., 1.5, 2.3)
-- Order stops by `stop_order ASC` in all queries
+| Table | Purpose |
+|-------|---------|
+| `customers` | Customer records (name, address, phone, Stripe ID) |
+| `route_templates` | Reusable route definitions |
+| `template_stops` | Stops within a template (linked to customers) |
+| `route_instances` | A specific day's route sent to driver (status: active/archived) |
+| `instance_stops` | Stops within an instance (copied from template on send) |
+| `v2_pickup_events` | Append-only pickup log (driver initials, completed, notes) |
 
-### Flags vs Notes
-- **`stops.flags`**: Pre-set driver instructions (read-only, displayed as badges)
-  - Examples: "long driveway", "gate code", "back door"
-- **`pickup_events.notes`**: Driver-entered feedback during pickup
-  - Examples: "no bucket", "left at door"
+### V1 Tables (Archived)
 
-### Offline Mode
-- Route & stop data cached for offline access
-- Pickup events queued in localStorage when offline
-- Automatic sync when connection restored
-- Manual sync button available
+These tables are from V1 and are **not used** by the application:
+`routes`, `stops`, `pickup_events`, `message_state`
 
-### Driver Initials Validation
-- Required for every pickup event
-- Must be 2-3 alphanumeric characters
-- Automatically converted to uppercase
+See "Supabase Cleanup" below for instructions on removing them.
 
-## PWA Installation
+## Core Workflow
 
-### iOS (Safari)
-1. Open the app in Safari
-2. Tap the Share button
-3. Select "Add to Home Screen"
+1. **Admin creates a route template** with customer stops (drag to reorder)
+2. **Admin taps "Send"** → creates a `route_instance` + `instance_stops` for today
+3. **Driver opens app** → sees active routes via direct Supabase query + Realtime
+4. **Driver taps route** → enters initials → sees stops with customer info
+5. **Driver logs pickups** → appended to `v2_pickup_events` (never updated)
+6. **Admin taps "Copy"** → duplicates template for next week's reuse
 
-### Android (Chrome)
-1. Open the app in Chrome
-2. Tap the menu (three dots)
-3. Select "Add to Home Screen"
+## Project Structure
 
-## Customization
+```
+app/
+  (driver)/              # Driver-facing (public, no auth)
+    page.tsx             # Dashboard — queries Supabase directly
+    route/[routeId]/     # Route execution — queries Supabase directly
+  admin/                 # Admin panel (password-protected)
+    customers/           # Customer management
+    templates/           # Route template CRUD + stop ordering
+    pickups/             # Pickup event history
+  api/
+    v2-pickups/          # POST pickup events (driver + offline sync)
+    instance-stops/      # PATCH driver notes
+    admin/               # All admin CRUD (auth required via middleware)
+components/
+  ui/                    # Shadcn primitives
+  admin/                 # SortableStopCard, SortableStopList
+  RouteList.tsx          # Driver dashboard — Supabase direct + Realtime
+  StopList.tsx           # Driver stop list with drag-reorder
+  StopDetail.tsx         # Individual stop with pickup logging
+  StopCard.tsx           # Stop card UI
+  InitialsPrompt.tsx     # Driver initials entry
+  CacheBuster.tsx        # Clears old service worker caches on deploy
+  OfflineIndicator.tsx   # Offline status + queued event sync
+lib/
+  supabase.ts            # Supabase client (browser + server)
+  types.ts               # TypeScript interfaces (V2 schema)
+  utils.ts               # Validation, formatting, offline queue, timezone
+  data/                  # Admin data access (fetch via API routes)
+```
 
-### Brand Colors
-The app uses FXBG Compost brand colors defined in `tailwind.config.ts` and `app/globals.css`:
+## Authentication
 
-- **Primary Brown**: `#5D4037` (text)
-- **Dark Brown**: `#3E2723` (headings)
-- **Green**: `#2E7D32` (primary actions)
-- **Medium Green**: `#4CAF50` (secondary elements)
-- **Light Green**: `#81C784` (highlights)
+- **Driver app:** No auth. Uses Supabase anon key (public).
+- **Admin panel:** Password-based login with HTTP-only cookie (`admin_auth`).
+- **Admin API:** Protected by Next.js middleware — validates cookie on `/api/admin/*`.
 
-### Logo/Icons
-Replace placeholder icons in `/public/` with actual FXBG Compost branded icons:
-- `favicon.ico` (16x16)
-- `icon-192x192.png` (192x192 for PWA)
-- `icon-512x512.png` (512x512 for PWA)
+## Environment Variables
 
-Generate PWA icons from the FXBG Compost logo using tools like:
-- [PWA Asset Generator](https://github.com/elegantapp/pwa-asset-generator)
-- [RealFaviconGenerator](https://realfavicongenerator.net/)
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
+| `ADMIN_PASSWORD` | Yes | Admin panel password |
 
-## Testing
+## Supabase Cleanup
 
-### Test Dynamic Behavior
-1. Add a customer in Supabase → Verify app reflects the change
-2. Update stop order → Verify order changes in app
-3. Add flags to a stop → Verify flags display correctly
+The following V1 tables can be safely dropped — they are not referenced anywhere in the codebase:
 
-### Test Pickup Logging
-1. Log a pickup with driver initials
-2. Verify timestamp and initials are saved in Supabase
-3. Verify completion status is recorded
+```sql
+-- Run in Supabase SQL Editor to remove V1 tables
+DROP TABLE IF EXISTS pickup_events CASCADE;
+DROP TABLE IF EXISTS stops CASCADE;
+DROP TABLE IF EXISTS routes CASCADE;
+DROP TABLE IF EXISTS message_state CASCADE;
+```
 
-### Test Offline Mode
-1. Disable network connection
-2. Attempt to log a pickup → Should queue the event
-3. Re-enable network → Should sync automatically
-4. Verify event appears in Supabase
+### Supabase Realtime Setup
 
-### Test on Mobile
-1. Install PWA on mobile device
-2. Test offline functionality
-3. Test click-to-call and click-to-text links
-4. Test map integration
+For instant driver updates, enable Realtime on the `route_instances` table:
+
+1. Go to Supabase Dashboard → Database → Replication
+2. Enable the `route_instances` table in the publication
+3. (Optional) Also enable `v2_pickup_events` for live pickup status
 
 ## Deployment
 
 ### Vercel (Recommended)
-1. Push code to GitHub
-2. Import project in Vercel
+
+1. Push to GitHub
+2. Import project in [Vercel](https://vercel.com)
 3. Add environment variables in Vercel dashboard
 4. Deploy
 
-### Other Platforms
-The app can be deployed to any platform that supports Next.js:
-- Netlify
-- AWS Amplify
-- Railway
-- Render
+### After Deploy
 
-## Critical Constraints
+The CacheBuster component automatically clears old service worker caches in users' browsers on first visit after a new deploy.
 
-1. **Database is single source of truth** - Never hard-code data
-2. **Append-only pickup events** - Never update previous logs
-3. **Sequential stop orders** - Integer values only (1, 2, 3...)
-4. **Read-only customer/stop data** - Drivers cannot modify
-5. **Offline support is essential** - Must queue and sync events
-6. **Driver initials validation** - 2-3 characters, alphanumeric
+## V1 Documentation
 
-## Future Enhancements (Out of Scope for MVP)
-
-- User authentication and driver accounts
-- Messaging integration via `message_state` table
-- Push notifications for route assignments
-- Route optimization algorithms
-- Analytics and reporting dashboard
-- Photo uploads for pickup verification
-
-## Support
-
-For issues or questions, contact the development team.
+Historical V1 documentation is archived in `docs/v1-archive/` for reference:
+- `SETUP.md` — Original database schema and setup
+- `QUICKSTART.md` — Original quick start guide
+- `STRUCTURE.md` — Original project structure
+- `DEPLOYMENT_CHECKLIST.md` — Original deployment checklist
 
 ## License
 
-Proprietary - FXBG Compost
+Proprietary — FXBG Compost

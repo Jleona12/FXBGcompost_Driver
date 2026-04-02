@@ -20,11 +20,11 @@ export default function AdminDashboard() {
 
   const loadStats = async () => {
     try {
-      const routesRes = await fetch('/api/admin/routes')
-      const routes = routesRes.ok ? await routesRes.json() : []
+      const res = await fetch('/api/admin/templates')
+      const templates = res.ok ? await res.json() : []
 
       setStats({
-        routeCount: Array.isArray(routes) ? routes.length : 0,
+        routeCount: Array.isArray(templates) ? templates.length : 0,
       })
     } catch (error) {
       console.error('Failed to load stats:', error)
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
               <CardDescription className="mt-1">
                 Total routes configured
               </CardDescription>
-              <Link href="/admin/routes">
+              <Link href="/admin/templates">
                 <Button variant="ghost" className="mt-4 p-0 h-auto text-fxbg-green hover:text-fxbg-dark-green">
                   Manage routes
                   <ArrowRight className="w-4 h-4 ml-1" />
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
           <CardTitle className="text-ios-title-3">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
-          <Link href="/admin/routes/new">
+          <Link href="/admin/templates/new">
             <Button className="bg-fxbg-green hover:bg-fxbg-green/90">
               Create New Route
             </Button>
