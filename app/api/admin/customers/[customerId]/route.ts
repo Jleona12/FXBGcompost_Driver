@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { customerId: string } }
@@ -36,38 +38,32 @@ export async function GET(
       )
     }
 
-    // Fetch route assignments for this customer
-    const { data: stops, error: stopsError } = await supabase
-      .from('stops')
+    // Fetch route assignments — which templates include this customer
+    const { data: templateStops, error: stopsError } = await supabase
+      .from('template_stops')
       .select(`
         id,
-        route_id,
+        template_id,
         stop_order,
         stop_type,
-        routes (
-          id,
-          date,
-          driver
-        )
+        template:route_templates(id, name, is_active)
       `)
       .eq('customer_id', customerId)
-      .order('route_id', { ascending: false })
+      .order('template_id', { ascending: true })
 
     if (stopsError) {
-      console.error('Error fetching stops:', stopsError)
-      // Return customer without assignments if stops fail
+      console.error('Error fetching template stops:', stopsError)
       return NextResponse.json({
         ...customer,
         assignments: []
       })
     }
 
-    // Transform stops to assignments format
-    const assignments = (stops || []).map((stop: any) => ({
+    const assignments = (templateStops || []).map((stop: any) => ({
       stop_id: stop.id,
-      route_id: stop.route_id,
-      route_date: stop.routes?.date,
-      route_driver: stop.routes?.driver,
+      template_id: stop.template_id,
+      template_name: stop.template?.name || 'Unknown',
+      template_active: stop.template?.is_active ?? false,
       stop_order: stop.stop_order,
       stop_type: stop.stop_type,
     }))

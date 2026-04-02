@@ -19,8 +19,7 @@ import {
   AlertCircle,
   ExternalLink
 } from 'lucide-react'
-import { formatPhoneNumber, getPhoneLink, getSmsLink, getMapLink, parseLocalDate } from '@/lib/utils'
-import { format } from 'date-fns'
+import { formatPhoneNumber, getPhoneLink, getSmsLink, getMapLink } from '@/lib/utils'
 
 export default function CustomerDetailPage() {
   const params = useParams()
@@ -202,10 +201,10 @@ export default function CustomerDetailPage() {
         <CardContent>
           {customer.assignments && customer.assignments.length > 0 ? (
             <div className="space-y-3">
-              {customer.assignments.map((assignment) => (
+              {customer.assignments.map((assignment: any) => (
                 <Link
                   key={assignment.stop_id}
-                  href={`/admin/routes/${assignment.route_id}/edit`}
+                  href={`/admin/templates/${assignment.template_id}/edit`}
                   className="block"
                 >
                   <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -217,13 +216,11 @@ export default function CustomerDetailPage() {
                       </div>
                       <div>
                         <p className="text-ios-body font-medium text-gray-900">
-                          {assignment.route_date && parseLocalDate(assignment.route_date)
-                            ? format(parseLocalDate(assignment.route_date)!, 'EEEE, MMM d, yyyy')
-                            : `Route ${assignment.route_id}`}
+                          {assignment.template_name}
                         </p>
-                        {assignment.route_driver && (
-                          <p className="text-ios-footnote text-gray-500">
-                            Driver: {assignment.route_driver}
+                        {!assignment.template_active && (
+                          <p className="text-ios-footnote text-gray-400">
+                            Retired
                           </p>
                         )}
                       </div>

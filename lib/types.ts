@@ -166,77 +166,11 @@ export interface PickupEventWithDetails extends PickupEvent {
     customer: Customer
     instance: RouteInstance
   }
-  // Legacy field for backward compat with existing pickups page
+  // Legacy fallback for old pickup events that reference the V1 schema
   stop?: {
     id: number
     stop_order: number
     stop_type?: string
     customer: Customer
-    route: Route
   }
-}
-
-// =============================================================
-// Legacy types — kept for backward compatibility during migration
-// =============================================================
-
-export interface Route {
-  id: number
-  date?: string
-  driver?: string
-  notes?: Record<string, any>
-}
-
-export interface Stop {
-  id: number
-  customer_id: string
-  route_id: number
-  stop_type?: string
-  visible_to_driver?: boolean
-  stop_order: number
-  flags?: string
-  flag_notes?: string
-  customer_flags?: string
-}
-
-export interface StopWithCustomer extends Stop {
-  customer: Customer
-}
-
-export interface RouteWithStops extends Route {
-  stops: StopWithCustomer[]
-}
-
-export interface RouteWithStopCount extends Route {
-  stop_count: number
-}
-
-export interface CreateRoutePayload {
-  date?: string
-  driver?: string
-  notes?: Record<string, any>
-}
-
-export interface UpdateRoutePayload {
-  date?: string
-  driver?: string
-  notes?: Record<string, any>
-}
-
-export interface CreateStopPayload {
-  route_id: number
-  customer_id: string
-  stop_order: number
-  stop_type?: string
-  visible_to_driver?: boolean
-  flags?: string
-  flag_notes?: string
-}
-
-export interface UpdateStopPayload {
-  stop_order?: number
-  stop_type?: string
-  visible_to_driver?: boolean
-  flags?: string
-  flag_notes?: string
 }

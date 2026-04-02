@@ -6,11 +6,20 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { GripVertical, MapPin, Phone, Trash2, Eye, EyeOff } from 'lucide-react'
-import { StopWithCustomer } from '@/lib/types'
+import { Customer } from '@/lib/types'
 import { formatPhoneNumber } from '@/lib/utils'
 
+interface AdminStop {
+  id: number
+  stop_order: number
+  stop_type?: string
+  visible_to_driver?: boolean
+  flags?: string
+  customer: Customer
+}
+
 interface SortableStopCardProps {
-  stop: StopWithCustomer
+  stop: AdminStop
   onDelete: (stopId: number) => void
   onToggleVisibility: (stopId: number, visible: boolean) => void
 }

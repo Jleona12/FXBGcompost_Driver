@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-// GET pickup events with full context (stop, customer, route)
+export const dynamic = 'force-dynamic'
+
+// GET pickup events with full context (instance stop, customer, route instance)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -11,30 +13,27 @@ export async function GET(request: NextRequest) {
       MAX_LIMIT
     )
     const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10) || 0)
-    const routeId = searchParams.get('route_id')
     const driverInitials = searchParams.get('driver_initials')
     const dateFrom = searchParams.get('date_from')
     const dateTo = searchParams.get('date_to')
     const completedOnly = searchParams.get('completed') === 'true'
 
-    // Build query with nested joins
     let query = supabase
-      .from('pickup_events')
+      .from('v2_pickup_events')
       .select(`
         *,
-        stop:stops(
+        instance_stop:instance_stops(
           id,
           stop_order,
           stop_type,
-          route_id,
+          instance_id,
           customer:customers(*),
-          route:routes(*)
+          instance:route_instances(*)
         )
       `)
       .order('timestamp', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    // Apply filters
     if (completedOnly) {
       query = query.eq('completed', true)
     }
@@ -48,7 +47,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (dateTo) {
-      // Add a day to include the entire end date
       const endDate = new Date(dateTo)
       endDate.setDate(endDate.getDate() + 1)
       query = query.lt('timestamp', endDate.toISOString())
@@ -64,16 +62,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Filter by route_id if specified (need to do this post-query due to nested relation)
-    let filteredData = data || []
-    if (routeId) {
-      const routeIdNum = parseInt(routeId, 10)
-      filteredData = filteredData.filter(
-        (event: any) => event.stop?.route_id === routeIdNum
-      )
-    }
-
-    return NextResponse.json(filteredData)
+    return NextResponse.json(data || [])
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
