@@ -3,9 +3,9 @@ import { Customer } from '@/lib/types'
 export interface CustomerWithAssignments extends Customer {
   assignments: Array<{
     stop_id: number
-    route_id: number
-    route_date?: string
-    route_driver?: string
+    template_id: number
+    template_name: string
+    template_active: boolean
     stop_order: number
     stop_type?: string
   }>

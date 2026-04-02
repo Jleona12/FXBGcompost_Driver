@@ -88,13 +88,9 @@ export default function TemplateEditorPage() {
     setShowCustomerSelector(false)
   }
 
-  // Adapt TemplateStopWithCustomer to the shape SortableStopList expects
   const stopsForList = stops.map(s => ({
     id: s.id,
-    customer_id: s.customer_id,
-    route_id: s.template_id,
     stop_type: s.stop_type,
-    visible_to_driver: true,
     stop_order: s.stop_order,
     flags: s.driver_notes || undefined,
     customer: s.customer,
@@ -281,7 +277,7 @@ export default function TemplateEditorPage() {
         </div>
 
         <SortableStopList
-          stops={stopsForList as any}
+          stops={stopsForList}
           onReorder={handleReorder}
           onDelete={handleDeleteStop}
           onToggleVisibility={() => {}}

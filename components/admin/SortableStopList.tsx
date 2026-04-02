@@ -15,12 +15,21 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { StopWithCustomer, BatchStopOrderUpdate } from '@/lib/types'
+import { Customer, BatchStopOrderUpdate } from '@/lib/types'
 import SortableStopCard from './SortableStopCard'
 import { MapPin } from 'lucide-react'
 
+interface AdminStop {
+  id: number
+  stop_order: number
+  stop_type?: string
+  visible_to_driver?: boolean
+  flags?: string
+  customer: Customer
+}
+
 interface SortableStopListProps {
-  stops: StopWithCustomer[]
+  stops: AdminStop[]
   onReorder: (updates: BatchStopOrderUpdate[]) => void
   onDelete: (stopId: number) => void
   onToggleVisibility: (stopId: number, visible: boolean) => void
