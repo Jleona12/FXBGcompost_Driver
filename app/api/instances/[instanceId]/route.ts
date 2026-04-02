@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 // GET — fetch instance stops for the driver view (with customer info + latest pickup)
 export async function GET(
   request: NextRequest,

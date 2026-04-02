@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getTodayEastern } from '@/lib/utils'
 
+// Never cache — this must always return live data
+export const dynamic = 'force-dynamic'
+
 // GET — list active route instances for the driver home screen
 export async function GET() {
   try {
