@@ -70,29 +70,115 @@ lib/
 
 ## Database Schema (V2)
 
-Tables: `customers`, `route_templates`, `template_stops`, `route_instances`, `instance_stops`, `v2_pickup_events`
-
 ```
 route_templates ──→ template_stops ──→ customers
-       │
-       ↓ (Send to Driver)
-route_instances ──→ instance_stops ──→ customers
+       │                                   ↑
+       ↓ (Send to Driver)                  │
+route_instances ──→ instance_stops ────────┘
                           │
                           ↓
                    v2_pickup_events
+
+subscriptions ──→ customers (Stripe billing, not used by app yet)
 ```
 
-Key relationships:
-- `template_stops.template_id` → `route_templates.id`
-- `template_stops.customer_id` → `customers.stripe_customer_id`
-- `route_instances.template_id` → `route_templates.id`
-- `instance_stops.instance_id` → `route_instances.id`
-- `instance_stops.customer_id` → `customers.stripe_customer_id`
-- `v2_pickup_events.instance_stop_id` → `instance_stops.id`
+### Table: `customers`
 
-### V1 Tables (archived, do not use)
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `stripe_customer_id` | varchar | **PK** | — | Primary key, from Stripe |
+| `name` | varchar | NO | — | Customer display name |
+| `phone` | varchar | YES | — | Phone number |
+| `address` | varchar | YES | — | Pickup address |
+| `subscription_type` | varchar | YES | — | e.g. "weekly", "biweekly" |
+| `status` | varchar | YES | `'active'` | active / paused / cancelled |
+| `notes` | jsonb | YES | `'{}'` | Admin notes |
 
-The following tables are from V1 and should not be referenced in code:
+### Table: `route_templates`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | serial | **PK** | auto | |
+| `name` | text | NO | — | Route name (e.g. "Thursday Route") |
+| `notes` | jsonb | YES | — | Admin notes |
+| `is_active` | boolean | NO | `true` | false = retired/archived |
+| `created_at` | timestamptz | NO | `now()` | |
+
+### Table: `template_stops`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | serial | **PK** | auto | |
+| `template_id` | int | NO | — | **FK → route_templates.id** |
+| `customer_id` | text | NO | — | **FK → customers.stripe_customer_id** |
+| `stop_order` | int | NO | — | Sequential: 1, 2, 3… |
+| `stop_type` | text | YES | `'pickup'` | pickup / delivery / both |
+| `driver_notes` | text | YES | — | Instructions for driver |
+| `created_at` | timestamptz | NO | `now()` | |
+
+### Table: `route_instances`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | serial | **PK** | auto | |
+| `template_id` | int | NO | — | **FK → route_templates.id** |
+| `date` | date | NO | — | The day this route is for |
+| `status` | text | NO | `'active'` | active / archived |
+| `notes` | jsonb | YES | — | |
+| `created_at` | timestamptz | NO | `now()` | |
+
+### Table: `instance_stops`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | serial | **PK** | auto | |
+| `instance_id` | int | NO | — | **FK → route_instances.id** |
+| `template_stop_id` | int | YES | — | **FK → template_stops.id** (nullable for ad-hoc stops) |
+| `customer_id` | text | NO | — | **FK → customers.stripe_customer_id** |
+| `stop_order` | int | NO | — | Sequential: 1, 2, 3… |
+| `stop_type` | text | YES | `'pickup'` | pickup / delivery / both |
+| `driver_notes` | text | YES | — | Instructions for driver |
+| `created_at` | timestamptz | NO | `now()` | |
+
+### Table: `v2_pickup_events`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | serial | **PK** | auto | |
+| `instance_stop_id` | int | NO | — | **FK → instance_stops.id** |
+| `driver_initials` | text | NO | — | 2-3 chars, uppercase |
+| `completed` | boolean | NO | — | Was pickup completed? |
+| `notes` | text | YES | — | Driver feedback |
+| `timestamp` | timestamptz | NO | `now()` | When logged |
+
+### Table: `subscriptions` (Stripe billing — not used by driver app)
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `stripe_subscription_id` | text | **PK** | — | From Stripe |
+| `stripe_customer_id` | text | NO | — | **FK → customers.stripe_customer_id** |
+| `status` | text | YES | — | Stripe subscription status |
+| `product_name` | text | YES | — | |
+| `price_id` | text | YES | — | |
+| `current_period_end` | timestamptz | YES | — | |
+| `cancel_at_period_end` | boolean | YES | — | |
+| `raw` | jsonb | YES | `'{}'` | Full Stripe payload |
+| `updated_at` | timestamptz | YES | `now()` | |
+
+### Naming Conventions
+
+- **Tables:** snake_case, plural nouns (`route_templates`, `instance_stops`)
+- **Columns:** snake_case (`stop_order`, `driver_notes`, `created_at`)
+- **Primary keys:** `id` (serial) for app tables, Stripe IDs for Stripe-synced tables
+- **Foreign keys:** `{referenced_table_singular}_id` (e.g. `template_id`, `instance_id`, `customer_id`)
+- **Timestamps:** `created_at` for creation, `updated_at` for mutation, `timestamp` for event time
+- **Booleans:** descriptive (`is_active`, `completed`, `cancel_at_period_end`)
+- **Status fields:** text with known values, not enums (easier to extend)
+- **JSON fields:** `notes` (jsonb) for flexible metadata, `raw` for external payloads
+
+### V1 Tables (deleted)
+
+These tables were dropped and should never be recreated:
 `routes`, `stops`, `pickup_events`, `message_state`
 
 ## Core Workflow
