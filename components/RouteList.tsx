@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { InstanceForDriver } from '@/lib/types'
 import { fetchActiveInstances } from '@/lib/data/instances'
@@ -18,13 +18,12 @@ export default function RouteList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadInstances()
-  }, [])
+  const initialLoad = useRef(true)
 
-  async function loadInstances() {
+  const loadInstances = useCallback(async () => {
     try {
-      setLoading(true)
+      // Only show skeleton on first load, not on background polls
+      if (initialLoad.current) setLoading(true)
       setError(null)
 
       const { data, error: fetchError } = await fetchActiveInstances()
@@ -40,8 +39,16 @@ export default function RouteList() {
       setError('Failed to load routes. Please try again.')
     } finally {
       setLoading(false)
+      initialLoad.current = false
     }
-  }
+  }, [])
+
+  // Load on mount + poll every 15 seconds for new routes
+  useEffect(() => {
+    loadInstances()
+    const interval = setInterval(loadInstances, 15_000)
+    return () => clearInterval(interval)
+  }, [loadInstances])
 
   if (loading) {
     return (

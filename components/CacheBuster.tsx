@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 // One-time cache clear: wipes stale service worker caches so the app
 // always fetches fresh data from the server. Runs on first load after deploy.
-const CACHE_VERSION = 'v2'
+const CACHE_VERSION = 'v3-no-sw'
 
 export default function CacheBuster() {
   useEffect(() => {
