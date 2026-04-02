@@ -7,7 +7,7 @@ export async function fetchActiveInstances(): Promise<{
   error: Error | null
 }> {
   try {
-    const response = await fetch('/api/instances')
+    const response = await fetch('/api/instances', { cache: 'no-store' })
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
@@ -27,7 +27,7 @@ export async function fetchInstanceStops(
     if (isNaN(instanceId) || instanceId < 1) {
       return { data: null, error: new Error('Invalid instance ID') }
     }
-    const response = await fetch(`/api/instances/${instanceId}`)
+    const response = await fetch(`/api/instances/${instanceId}`, { cache: 'no-store' })
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }

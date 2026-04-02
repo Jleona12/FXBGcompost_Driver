@@ -5,6 +5,15 @@ const withPWA = require('next-pwa')({
   skipWaiting: true,
   runtimeCaching: [
     {
+      // API routes must ALWAYS hit the network — never serve stale data
+      urlPattern: /\/api\/.*/i,
+      handler: 'NetworkOnly',
+      method: 'GET',
+      options: {
+        cacheName: 'api-no-cache',
+      }
+    },
+    {
       urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/.*/i,
       handler: 'NetworkFirst',
       options: {
