@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { StopWithStatus, PickupEvent, BatchStopOrderUpdate } from '@/lib/types'
-import { fetchInstanceStops } from '@/lib/data/instances'
 import { supabase } from '@/lib/supabase'
 import InitialsPrompt from '@/components/InitialsPrompt'
 import StopList from '@/components/StopList'
@@ -13,12 +12,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 
-const POLL_INTERVAL = 30_000 // 30s fallback (Realtime handles instant updates)
-
 export default function RoutePage() {
   const params = useParams()
   const router = useRouter()
-  const routeId = params?.routeId as string // this is now an instance ID
+  const routeId = params?.routeId as string
 
   const [stops, setStops] = useState<StopWithStatus[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,19 +27,42 @@ export default function RoutePage() {
   const loadStops = useCallback(async () => {
     try {
       setError(null)
-
       const instanceId = Number(routeId)
-      const { data, error: fetchError } = await fetchInstanceStops(instanceId)
-
-      if (fetchError) {
-        setError('Failed to load route stops. Please try again.')
+      if (isNaN(instanceId) || instanceId < 1) {
+        setError('Invalid route ID.')
         return
       }
 
-      setStops(data || [])
+      // Query Supabase directly — no API route
+      const { data: rawStops, error: dbError } = await supabase
+        .from('instance_stops')
+        .select('*, customer:customers(*), pickup_events:v2_pickup_events(*)')
+        .eq('instance_id', instanceId)
+        .order('stop_order', { ascending: true })
+
+      if (dbError) {
+        console.error('Supabase error:', dbError)
+        setError('Failed to load route stops.')
+        return
+      }
+
+      // Attach latest pickup to each stop
+      const stopsWithStatus: StopWithStatus[] = (rawStops || []).map((stop: any) => {
+        const events = stop.pickup_events || []
+        let latest: PickupEvent | null = null
+        for (const e of events) {
+          if (!latest || e.timestamp > latest.timestamp) {
+            latest = e
+          }
+        }
+        const { pickup_events, ...rest } = stop
+        return { ...rest, latest_pickup: latest }
+      })
+
+      setStops(stopsWithStatus)
     } catch (err) {
       console.error('Error loading stops:', err)
-      setError('Failed to load route stops. Please try again.')
+      setError('Failed to load route stops.')
     } finally {
       setLoading(false)
     }
@@ -56,23 +76,21 @@ export default function RoutePage() {
     }
   }, [routeId, loadStops])
 
-  // Fallback poll — catches anything Realtime misses (e.g. reconnecting after phone sleep)
+  // Fallback poll — catches anything Realtime misses
   useEffect(() => {
     if (!driverInitials || selectedStopIndex !== null) {
       if (pollRef.current) clearInterval(pollRef.current)
       return
     }
 
-    pollRef.current = setInterval(() => {
-      loadStops()
-    }, POLL_INTERVAL)
+    pollRef.current = setInterval(loadStops, 30_000)
 
     return () => {
       if (pollRef.current) clearInterval(pollRef.current)
     }
   }, [driverInitials, selectedStopIndex, loadStops])
 
-  // Supabase Realtime — apply pickup events directly to local state (no refetch)
+  // Supabase Realtime — apply pickup events directly to local state
   useEffect(() => {
     if (!driverInitials || !routeId) return
 
@@ -118,7 +136,6 @@ export default function RoutePage() {
   }
 
   const handlePickupLogged = (stopId: number, completed: boolean, notes?: string) => {
-    // Optimistic update
     setStops((prev) =>
       prev.map((s) =>
         s.id === stopId
@@ -141,15 +158,12 @@ export default function RoutePage() {
 
   const handleReorder = async (updates: BatchStopOrderUpdate[]) => {
     try {
-      const response = await fetch(`/api/instances/${routeId}/reorder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ updates }),
-      })
-
-      if (!response.ok) {
-        console.error('Failed to save reorder')
-        loadStops()
+      // Reorder directly via Supabase
+      for (const update of updates) {
+        await supabase
+          .from('instance_stops')
+          .update({ stop_order: update.stop_order })
+          .eq('id', update.stop_id)
       }
     } catch {
       console.error('Failed to save reorder')
@@ -157,7 +171,6 @@ export default function RoutePage() {
     }
   }
 
-  // Loading State
   if (loading && stops.length === 0) {
     return (
       <main className="min-h-screen bg-ios-bg-secondary">
@@ -177,7 +190,6 @@ export default function RoutePage() {
     )
   }
 
-  // Error State
   if (error && stops.length === 0) {
     return (
       <main className="min-h-screen bg-ios-bg-secondary">
@@ -200,7 +212,6 @@ export default function RoutePage() {
     )
   }
 
-  // Initials Prompt
   if (!driverInitials) {
     return (
       <InitialsPrompt
@@ -211,7 +222,6 @@ export default function RoutePage() {
     )
   }
 
-  // Stop Detail view
   if (selectedStopIndex !== null && stops[selectedStopIndex]) {
     return (
       <StopDetail
@@ -223,7 +233,6 @@ export default function RoutePage() {
     )
   }
 
-  // Stop List (main view)
   return (
     <StopList
       stops={stops}

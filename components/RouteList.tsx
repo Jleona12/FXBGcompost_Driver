@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { InstanceForDriver } from '@/lib/types'
-import { fetchActiveInstances } from '@/lib/data/instances'
+import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
-import { parseLocalDate } from '@/lib/utils'
+import { parseLocalDate, getTodayEastern } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,41 +12,101 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { MapPin, RefreshCw, ChevronRight, Map, Calendar } from 'lucide-react'
 
+interface RouteInstance {
+  id: number
+  template_id: number
+  date: string
+  status: string
+  template_name: string
+  stop_count: number
+}
+
 export default function RouteList() {
-  const [instances, setInstances] = useState<InstanceForDriver[]>([])
+  const [instances, setInstances] = useState<RouteInstance[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const initialLoad = useRef(true)
 
   const loadInstances = useCallback(async () => {
     try {
-      // Only show skeleton on first load, not on background polls
       if (initialLoad.current) setLoading(true)
       setError(null)
 
-      const { data, error: fetchError } = await fetchActiveInstances()
+      const today = getTodayEastern()
 
-      if (fetchError) {
-        setError('Failed to load routes. Please try again.')
+      // Query Supabase directly — no API route, no caching layers
+      const { data: rows, error: dbError } = await supabase
+        .from('route_instances')
+        .select('id, template_id, date, status, created_at, template:route_templates(name)')
+        .eq('status', 'active')
+        .gte('date', today)
+        .order('date', { ascending: true })
+
+      if (dbError) {
+        console.error('Supabase error:', dbError)
+        setError('Failed to load routes.')
         return
       }
 
-      setInstances(data || [])
+      if (!rows || rows.length === 0) {
+        setInstances([])
+        return
+      }
+
+      // Get stop counts
+      const ids = rows.map((r: any) => r.id)
+      const { data: stops } = await supabase
+        .from('instance_stops')
+        .select('instance_id')
+        .in('instance_id', ids)
+
+      const countMap: Record<number, number> = {}
+      for (const s of stops || []) {
+        countMap[s.instance_id] = (countMap[s.instance_id] || 0) + 1
+      }
+
+      const result: RouteInstance[] = rows.map((r: any) => ({
+        id: r.id,
+        template_id: r.template_id,
+        date: r.date,
+        status: r.status,
+        template_name: (r.template as any)?.name || 'Route',
+        stop_count: countMap[r.id] || 0,
+      }))
+
+      setInstances(result)
     } catch (err) {
       console.error('Error loading instances:', err)
-      setError('Failed to load routes. Please try again.')
+      setError('Failed to load routes.')
     } finally {
       setLoading(false)
       initialLoad.current = false
     }
   }, [])
 
-  // Load on mount + poll every 15 seconds for new routes
+  // Load on mount + subscribe to Realtime for instant updates
   useEffect(() => {
     loadInstances()
-    const interval = setInterval(loadInstances, 15_000)
-    return () => clearInterval(interval)
+
+    // Realtime: reload whenever route_instances changes (INSERT, UPDATE, DELETE)
+    const channel = supabase
+      .channel('driver-route-list')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'route_instances' },
+        () => {
+          loadInstances()
+        }
+      )
+      .subscribe()
+
+    // Also poll every 30s as a fallback
+    const interval = setInterval(loadInstances, 30_000)
+
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(interval)
+    }
   }, [loadInstances])
 
   if (loading) {
