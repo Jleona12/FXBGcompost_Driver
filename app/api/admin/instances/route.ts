@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getTodayEastern } from '@/lib/utils'
 
 // GET all instances (with template name + stop counts), filterable by status
 export async function GET(request: NextRequest) {
   try {
     const status = request.nextUrl.searchParams.get('status') // 'active', 'archived', or null for all
+
+    // Auto-archive past instances (same as driver endpoint)
+    if (status === 'active') {
+      const today = getTodayEastern()
+      await supabase
+        .from('route_instances')
+        .update({ status: 'archived' })
+        .eq('status', 'active')
+        .lt('date', today)
+    }
 
     let query = supabase
       .from('route_instances')

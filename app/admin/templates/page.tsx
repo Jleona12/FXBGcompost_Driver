@@ -63,12 +63,13 @@ export default function TemplatesPage() {
     setSendingId(templateId)
     setError(null)
 
-    const { data, error: sendError } = await sendToDriver(templateId)
+    const { error: sendError } = await sendToDriver(templateId)
 
     if (sendError) {
       setError(sendError.message)
-    } else if (data) {
-      setInstances(prev => [data, ...prev])
+    } else {
+      // Refresh from DB to get accurate state (avoids duplicates in local state)
+      await load()
     }
 
     setSendingId(null)

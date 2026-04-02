@@ -86,3 +86,8 @@ Required:
 - iOS-style typography scale (Large Title through Caption)
 - Mobile-first, touch-optimized with `active:scale-[0.98]` press feedback
 - Shadcn components in `components/ui/` — extend, don't modify originals
+
+## Git Workflow
+
+- **Always push to `main`** — do not create or use feature branches unless explicitly asked.
+- Commit and push directly to `main` for all changes.

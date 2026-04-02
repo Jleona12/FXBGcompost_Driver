@@ -14,6 +14,18 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid instance ID' }, { status: 400 })
     }
 
+    // First verify the instance exists
+    const { data: instance, error: instanceError } = await supabase
+      .from('route_instances')
+      .select('id, status')
+      .eq('id', instanceId)
+      .single()
+
+    if (instanceError || !instance) {
+      console.error('Instance not found:', instanceId, instanceError)
+      return NextResponse.json({ error: 'Route not found' }, { status: 404 })
+    }
+
     const { data: stops, error } = await supabase
       .from('instance_stops')
       .select('*, customer:customers(*), pickup_events:v2_pickup_events(*)')
@@ -24,6 +36,16 @@ export async function GET(
     if (error) {
       console.error('Error fetching instance stops:', error)
       return NextResponse.json({ error: 'Failed to fetch stops' }, { status: 500 })
+    }
+
+    if (!stops || stops.length === 0) {
+      console.error('No stops found for instance:', instanceId, '- checking without visibility filter')
+      // Debug: check if stops exist without the visibility filter
+      const { data: allStops } = await supabase
+        .from('instance_stops')
+        .select('id, visible_to_driver')
+        .eq('instance_id', instanceId)
+      console.error('All stops for instance (no filter):', allStops?.length ?? 0, allStops)
     }
 
     // Attach latest pickup to each stop

@@ -40,11 +40,32 @@ export async function POST(
       return NextResponse.json({ error: 'Template not found' }, { status: 404 })
     }
 
+    if (stopsRes.error) {
+      console.error('Error fetching template stops:', stopsRes.error)
+      return NextResponse.json({ error: 'Failed to read route stops' }, { status: 500 })
+    }
+
     const stops = stopsRes.data || []
     if (stops.length === 0) {
       return NextResponse.json(
         { error: 'This route has no stops. Add customers before sending.' },
         { status: 400 }
+      )
+    }
+
+    // Check for duplicate: same template + same date already active
+    const { data: existing } = await supabase
+      .from('route_instances')
+      .select('id')
+      .eq('template_id', templateId)
+      .eq('date', date)
+      .eq('status', 'active')
+      .limit(1)
+
+    if (existing && existing.length > 0) {
+      return NextResponse.json(
+        { error: 'This route is already active for today. Delete it first to resend.' },
+        { status: 409 }
       )
     }
 
@@ -65,7 +86,7 @@ export async function POST(
     }
 
     // Create instance stops from all template stops
-    const instanceStops = stops.map((stop) => ({
+    const instanceStopsData = stops.map((stop) => ({
       instance_id: instance.id,
       template_stop_id: stop.id,
       customer_id: stop.customer_id,
@@ -75,20 +96,37 @@ export async function POST(
       visible_to_driver: true,
     }))
 
-    const { error: stopsError } = await supabase
+    const { data: insertedStops, error: stopsError } = await supabase
       .from('instance_stops')
-      .insert(instanceStops)
+      .insert(instanceStopsData)
+      .select('id')
 
     if (stopsError) {
       console.error('Error creating instance stops:', stopsError)
+      // Clean up the instance on failure
       await supabase.from('route_instances').delete().eq('id', instance.id)
-      return NextResponse.json({ error: 'Failed to create instance stops' }, { status: 500 })
+      return NextResponse.json(
+        { error: `Failed to create instance stops: ${stopsError.message}` },
+        { status: 500 }
+      )
+    }
+
+    const actualStopCount = insertedStops?.length ?? 0
+
+    if (actualStopCount === 0) {
+      console.error('Instance stops insert returned 0 rows — possible RLS or constraint issue')
+      // Clean up the empty instance
+      await supabase.from('route_instances').delete().eq('id', instance.id)
+      return NextResponse.json(
+        { error: 'Stops were not created. Check database permissions.' },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({
       ...instance,
       template_name: templateRes.data.name,
-      stop_count: instanceStops.length,
+      stop_count: actualStopCount,
     }, { status: 201 })
   } catch (error) {
     console.error('Unexpected error:', error)
