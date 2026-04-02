@@ -89,7 +89,7 @@ export default function RouteList() {
           No active routes
         </p>
         <p className="text-ios-body text-gray-400 mb-4">
-          Routes are activated by admin from templates
+          Waiting for admin to send a route
         </p>
         <Button variant="outline" onClick={loadInstances}>
           <RefreshCw className="w-4 h-4 mr-2" />

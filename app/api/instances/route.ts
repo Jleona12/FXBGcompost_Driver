@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getTodayEastern } from '@/lib/utils'
 
 // GET — list active route instances for the driver home screen
 export async function GET() {
   try {
-    const today = new Date().toISOString().split('T')[0]
+    const today = getTodayEastern()
 
     // Auto-archive past instances
     await supabase

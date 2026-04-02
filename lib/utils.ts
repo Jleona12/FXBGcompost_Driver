@@ -144,3 +144,18 @@ export function parseLocalDate(dateString: string | undefined): Date | null {
 
   return new Date(year, month, day)
 }
+
+/**
+ * Get today's date as YYYY-MM-DD in Eastern time (Fredericksburg, VA).
+ * Server-side code runs in UTC, so we must convert explicitly.
+ */
+export function getTodayEastern(): string {
+  const now = new Date()
+  const eastern = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now)
+  return eastern // returns "YYYY-MM-DD"
+}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getTodayEastern } from '@/lib/utils'
 
 // POST — one-tap "Send to Driver": creates an instance with today's date and all template stops
 export async function POST(
@@ -12,13 +13,13 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid template ID' }, { status: 400 })
     }
 
-    // Get optional date from body, default to today
+    // Get optional date from body, default to today in Eastern time
     let date: string
     try {
       const body = await request.json()
-      date = body.date || new Date().toISOString().split('T')[0]
+      date = body.date || getTodayEastern()
     } catch {
-      date = new Date().toISOString().split('T')[0]
+      date = getTodayEastern()
     }
 
     // Fetch template + its stops in parallel
