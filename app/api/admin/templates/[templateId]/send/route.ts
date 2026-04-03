@@ -93,7 +93,6 @@ export async function POST(
       stop_order: stop.stop_order,
       stop_type: stop.stop_type || 'pickup',
       driver_notes: stop.driver_notes || null,
-      visible_to_driver: true,
     }))
 
     const { data: insertedStops, error: stopsError } = await supabase

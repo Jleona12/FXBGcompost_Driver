@@ -14,7 +14,7 @@ export async function GET(
 
     const { data: instance, error: instError } = await supabase
       .from('route_instances')
-      .select('*, template:route_templates(name, frequency)')
+      .select('*, template:route_templates(name)')
       .eq('id', instanceId)
       .single()
 

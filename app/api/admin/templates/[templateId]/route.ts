@@ -59,7 +59,6 @@ export async function PUT(
     const body = await request.json()
     const updateData: Record<string, any> = {}
     if (body.name !== undefined) updateData.name = body.name.trim()
-    if (body.frequency !== undefined) updateData.frequency = body.frequency
     if (body.notes !== undefined) updateData.notes = body.notes
     if (body.is_active !== undefined) updateData.is_active = body.is_active
 

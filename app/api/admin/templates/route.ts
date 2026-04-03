@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
       .from('route_templates')
       .insert({
         name: body.name.trim(),
-        frequency: body.frequency || 'weekly',
         notes: body.notes || null,
       })
       .select()

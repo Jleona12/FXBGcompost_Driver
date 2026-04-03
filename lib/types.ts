@@ -27,7 +27,6 @@ export interface MessageState {
 export interface RouteTemplate {
   id: number
   name: string
-  frequency: string        // 'weekly' | 'biweekly' | 'monthly'
   notes?: Record<string, any>
   is_active: boolean
   created_at: string
@@ -111,13 +110,11 @@ export interface InstanceForDriver extends RouteInstance {
 
 export interface CreateTemplatePayload {
   name: string
-  frequency?: string
   notes?: Record<string, any>
 }
 
 export interface UpdateTemplatePayload {
   name?: string
-  frequency?: string
   notes?: Record<string, any>
   is_active?: boolean
 }

@@ -37,7 +37,6 @@ export async function POST(
       .from('route_templates')
       .insert({
         name: `${original.name} (Copy)`,
-        frequency: original.frequency,
         notes: original.notes,
         is_active: true,
       })
