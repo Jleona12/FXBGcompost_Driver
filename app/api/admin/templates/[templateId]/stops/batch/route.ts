@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+const MAX_BATCH_SIZE = 200
+
 // POST — batch update stop orders for a template
 export async function POST(
   request: NextRequest,
@@ -18,7 +20,18 @@ export async function POST(
       return NextResponse.json({ error: 'updates array is required' }, { status: 400 })
     }
 
-    // Update each stop order
+    if (updates.length > MAX_BATCH_SIZE) {
+      return NextResponse.json({ error: `Maximum ${MAX_BATCH_SIZE} updates per batch` }, { status: 400 })
+    }
+
+    // Validate all entries before writing anything
+    for (const update of updates) {
+      if (typeof update.stop_id !== 'number' || typeof update.stop_order !== 'number') {
+        return NextResponse.json({ error: 'Each update must have numeric stop_id and stop_order' }, { status: 400 })
+      }
+    }
+
+    // Execute updates — bail on first failure
     for (const update of updates) {
       const { error } = await supabase
         .from('template_stops')

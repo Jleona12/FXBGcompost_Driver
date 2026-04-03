@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createSessionToken, verifySessionToken } from '@/lib/auth'
+import { isRateLimited } from '@/lib/rate-limit'
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
 
@@ -13,8 +14,21 @@ if (!ADMIN_PASSWORD) {
 const COOKIE_NAME = 'admin_auth'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
+// Allow 5 login attempts per IP per 15-minute window
+const LOGIN_RATE_LIMIT = 5
+const LOGIN_WINDOW_MS = 15 * 60 * 1000
+
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+
+    if (isRateLimited(`auth:${ip}`, LOGIN_RATE_LIMIT, LOGIN_WINDOW_MS)) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Try again later.' },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const { password } = body
 

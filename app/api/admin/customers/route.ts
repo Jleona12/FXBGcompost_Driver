@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+const DEFAULT_LIMIT = 100
+const MAX_LIMIT = 500
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
+    const limit = Math.min(
+      parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
+      MAX_LIMIT
+    )
+    const offset = parseInt(searchParams.get('offset') || '0', 10) || 0
 
     let query = supabase
       .from('customers')
       .select('*')
       .order('name', { ascending: true })
+      .range(offset, offset + limit - 1)
 
     // Apply search filter if provided
     // Escape special PostgREST filter characters to prevent filter injection

@@ -72,7 +72,16 @@ export const STORAGE_KEYS = {
 } as const
 
 /**
- * Queue pickup event for offline sync
+ * Generate a unique idempotency key for a pickup event.
+ * Prevents duplicate submissions on retry/sync.
+ */
+export function generateIdempotencyKey(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+/**
+ * Queue pickup event for offline sync.
+ * Each event gets an idempotency_key to prevent duplicate submissions.
  */
 export function queuePickupEvent(event: any): void {
   if (typeof window === 'undefined') return
@@ -81,6 +90,7 @@ export function queuePickupEvent(event: any): void {
     const queue = JSON.parse(localStorage.getItem(STORAGE_KEYS.PICKUP_QUEUE) || '[]')
     queue.push({
       ...event,
+      idempotency_key: event.idempotency_key || generateIdempotencyKey(),
       queued_at: new Date().toISOString(),
     })
     localStorage.setItem(STORAGE_KEYS.PICKUP_QUEUE, JSON.stringify(queue))
@@ -104,7 +114,25 @@ export function getQueuedEvents(): any[] {
 }
 
 /**
- * Clear queued events after successful sync
+ * Replace the entire queue (used after partial sync to keep only failed events).
+ */
+export function setQueuedEvents(events: any[]): void {
+  if (typeof window === 'undefined') return
+
+  try {
+    if (events.length === 0) {
+      localStorage.removeItem(STORAGE_KEYS.PICKUP_QUEUE)
+      localStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString())
+    } else {
+      localStorage.setItem(STORAGE_KEYS.PICKUP_QUEUE, JSON.stringify(events))
+    }
+  } catch (error) {
+    console.error('Failed to set queued events:', error)
+  }
+}
+
+/**
+ * Clear all queued events after successful sync
  */
 export function clearQueuedEvents(): void {
   if (typeof window === 'undefined') return

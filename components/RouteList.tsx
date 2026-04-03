@@ -98,9 +98,16 @@ export default function RouteList() {
           loadInstances()
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime subscription error — falling back to polling')
+        }
+        if (status === 'TIMED_OUT') {
+          console.error('Realtime subscription timed out — falling back to polling')
+        }
+      })
 
-    // Also poll every 30s as a fallback
+    // Also poll every 30s as a fallback (covers Realtime failures)
     const interval = setInterval(loadInstances, 30_000)
 
     return () => {

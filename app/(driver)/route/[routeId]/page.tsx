@@ -120,7 +120,11 @@ export default function RoutePage() {
           })
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error(`Realtime pickup subscription ${status} — polling is active as fallback`)
+        }
+      })
 
     return () => {
       supabase.removeChannel(channel)

@@ -2,25 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getTodayEastern } from '@/lib/utils'
 
+const DEFAULT_LIMIT = 50
+const MAX_LIMIT = 200
+
 // GET all instances (with template name + stop counts), filterable by status
 export async function GET(request: NextRequest) {
   try {
-    const status = request.nextUrl.searchParams.get('status') // 'active', 'archived', or null for all
-
-    // Auto-archive past instances (same as driver endpoint)
-    if (status === 'active') {
-      const today = getTodayEastern()
-      await supabase
-        .from('route_instances')
-        .update({ status: 'archived' })
-        .eq('status', 'active')
-        .lt('date', today)
-    }
+    const status = request.nextUrl.searchParams.get('status')
+    const limit = Math.min(
+      parseInt(request.nextUrl.searchParams.get('limit') || String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
+      MAX_LIMIT
+    )
+    const offset = parseInt(request.nextUrl.searchParams.get('offset') || '0', 10) || 0
 
     let query = supabase
       .from('route_instances')
       .select('*, template:route_templates(name)')
       .order('date', { ascending: false })
+      .range(offset, offset + limit - 1)
 
     if (status) {
       query = query.eq('status', status)
@@ -57,6 +56,35 @@ export async function GET(request: NextRequest) {
     }))
 
     return NextResponse.json(result)
+  } catch (error) {
+    console.error('Unexpected error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// POST — archive past instances (replaces the old auto-archive side effect in GET)
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json().catch(() => ({}))
+
+    if (body.action !== 'archive-past') {
+      return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+    }
+
+    const today = getTodayEastern()
+    const { data, error } = await supabase
+      .from('route_instances')
+      .update({ status: 'archived' })
+      .eq('status', 'active')
+      .lt('date', today)
+      .select('id')
+
+    if (error) {
+      console.error('Error archiving instances:', error)
+      return NextResponse.json({ error: 'Failed to archive instances' }, { status: 500 })
+    }
+
+    return NextResponse.json({ archived: data?.length || 0 })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

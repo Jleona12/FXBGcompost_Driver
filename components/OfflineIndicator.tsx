@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getQueuedEvents, clearQueuedEvents, isOnline } from '@/lib/utils'
+import { getQueuedEvents, setQueuedEvents, isOnline } from '@/lib/utils'
 
 export default function OfflineIndicator() {
   const [online, setOnline] = useState(true)
@@ -9,13 +9,9 @@ export default function OfflineIndicator() {
   const [queuedCount, setQueuedCount] = useState(0)
 
   useEffect(() => {
-    // Set initial online status
     setOnline(isOnline())
-
-    // Update queued count
     updateQueuedCount()
 
-    // Listen for online/offline events
     const handleOnline = () => {
       setOnline(true)
       syncQueuedEvents()
@@ -28,7 +24,6 @@ export default function OfflineIndicator() {
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
 
-    // Periodic check for queued events
     const interval = setInterval(updateQueuedCount, 5000)
 
     return () => {
@@ -36,50 +31,45 @@ export default function OfflineIndicator() {
       window.removeEventListener('offline', handleOffline)
       clearInterval(interval)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const updateQueuedCount = () => {
-    const queued = getQueuedEvents()
-    setQueuedCount(queued.length)
+    setQueuedCount(getQueuedEvents().length)
   }
 
   const syncQueuedEvents = async () => {
     const queued = getQueuedEvents()
-
-    if (queued.length === 0) {
-      return
-    }
+    if (queued.length === 0) return
 
     setSyncing(true)
 
     try {
-      // Attempt to sync each queued event
-      const syncPromises = queued.map((event) =>
-        fetch('/api/v2-pickups', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            instance_stop_id: event.instance_stop_id,
-            driver_initials: event.driver_initials,
-            completed: event.completed,
-            notes: event.notes,
-          }),
-        })
+      // Sync each event individually and track which succeeded
+      const results = await Promise.allSettled(
+        queued.map((event) =>
+          fetch('/api/v2-pickups', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              instance_stop_id: event.instance_stop_id,
+              driver_initials: event.driver_initials,
+              completed: event.completed,
+              notes: event.notes,
+              idempotency_key: event.idempotency_key,
+            }),
+          })
+        )
       )
 
-      const results = await Promise.allSettled(syncPromises)
+      // Keep only the events that failed — discard succeeded ones
+      const failed = queued.filter((_, i) => {
+        const result = results[i]
+        return result.status === 'rejected' || !result.value.ok
+      })
 
-      // Check if all succeeded
-      const allSucceeded = results.every(
-        (result) => result.status === 'fulfilled' && result.value.ok
-      )
-
-      if (allSucceeded) {
-        clearQueuedEvents()
-        updateQueuedCount()
-      }
+      setQueuedEvents(failed)
+      updateQueuedCount()
     } catch (error) {
       console.error('Failed to sync queued events:', error)
     } finally {

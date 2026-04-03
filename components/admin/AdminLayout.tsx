@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import PasswordGate from './PasswordGate'
 import Header from '@/components/Header'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { Loader2, LayoutDashboard, Users, Route, ClipboardCheck, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -115,7 +116,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Main content area */}
       <main className="min-h-screen">
         <div className="container mx-auto p-4 md:p-6">
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </div>
       </main>
     </div>

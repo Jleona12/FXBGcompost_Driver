@@ -3,14 +3,24 @@ import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
+const DEFAULT_LIMIT = 100
+const MAX_LIMIT = 500
+
 // GET all templates with stop counts
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const limit = Math.min(
+      parseInt(request.nextUrl.searchParams.get('limit') || String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT,
+      MAX_LIMIT
+    )
+    const offset = parseInt(request.nextUrl.searchParams.get('offset') || '0', 10) || 0
+
     const { data: templates, error } = await supabase
       .from('route_templates')
       .select('*')
       .eq('is_active', true)
       .order('name', { ascending: true })
+      .range(offset, offset + limit - 1)
 
     if (error) {
       console.error('Error fetching templates:', error)

@@ -1,4 +1,5 @@
 import Header from '@/components/Header'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 export default function DriverLayout({
   children,
@@ -8,7 +9,11 @@ export default function DriverLayout({
   return (
     <>
       <Header />
-      <main>{children}</main>
+      <main>
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+      </main>
     </>
   )
 }
