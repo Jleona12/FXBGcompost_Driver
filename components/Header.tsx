@@ -1,13 +1,19 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Settings } from 'lucide-react'
+import { Settings, Truck } from 'lucide-react'
 
-export default function Header() {
+interface HeaderProps {
+  variant?: 'driver' | 'admin'
+}
+
+export default function Header({ variant = 'driver' }: HeaderProps) {
+  const isAdmin = variant === 'admin'
+
   return (
     <header className="bg-ios-bg-primary/95 border-b border-ios-separator shadow-ios-sm sticky top-0 z-50 backdrop-blur-xl backdrop-saturate-150">
       <div className="container mx-auto px-4 py-3.5 flex items-center justify-between">
         <Link
-          href="/"
+          href={isAdmin ? '/admin' : '/'}
           className="flex items-center gap-3 active:opacity-70 transition-opacity"
         >
           <Image
@@ -19,16 +25,16 @@ export default function Header() {
             priority
           />
           <div className="text-ios-subheadline font-semibold text-gray-600 hidden sm:block">
-            Driver App
+            {isAdmin ? 'Admin' : 'Driver App'}
           </div>
         </Link>
 
         <Link
-          href="/admin"
+          href={isAdmin ? '/' : '/admin'}
           className="flex items-center gap-2 px-3 py-2 rounded-lg text-ios-subheadline text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors"
         >
-          <Settings className="w-4 h-4" />
-          <span className="hidden sm:inline">Admin</span>
+          {isAdmin ? <Truck className="w-4 h-4" /> : <Settings className="w-4 h-4" />}
+          <span className="hidden sm:inline">{isAdmin ? 'Driver' : 'Admin'}</span>
         </Link>
       </div>
     </header>

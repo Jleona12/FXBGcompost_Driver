@@ -206,7 +206,7 @@ export default function PickupDateDetailPage() {
       ) : (
         <div className="space-y-4">
           {events.map((event, index) => {
-            const customer = event.instance_stop?.customer || event.stop?.customer
+            const customer = event.instance_stop?.customer
             const phoneLink = getPhoneLink(customer?.phone)
             const smsLink = getSmsLink(customer?.phone)
 
@@ -273,9 +273,9 @@ export default function PickupDateDetailPage() {
                               <User className="w-3 h-3" />
                               {event.driver_initials.toUpperCase()}
                             </span>
-                            {(event.instance_stop?.stop_order || event.stop?.stop_order) && (
+                            {event.instance_stop?.stop_order && (
                               <span>
-                                Stop #{event.instance_stop?.stop_order || event.stop?.stop_order}
+                                Stop #{event.instance_stop.stop_order}
                               </span>
                             )}
                           </div>

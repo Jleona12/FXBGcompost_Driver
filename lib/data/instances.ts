@@ -1,47 +1,12 @@
 import { InstanceForDriver } from '@/lib/types'
+import { adminGet, adminAction } from './admin-fetch'
 
-// Cache-bust: append timestamp so stale responses are never served
-function fresh(url: string): string {
-  const sep = url.includes('?') ? '&' : '?'
-  return `${url}${sep}_t=${Date.now()}`
+export const fetchAdminInstances = (status?: string) => {
+  const path = status
+    ? `/api/admin/instances?status=${status}`
+    : '/api/admin/instances'
+  return adminGet<InstanceForDriver[]>(path)
 }
 
-// --- Admin-facing: fetch all instances ---
-
-export async function fetchAdminInstances(status?: string): Promise<{
-  data: InstanceForDriver[] | null
-  error: Error | null
-}> {
-  try {
-    const url = status
-      ? `/api/admin/instances?status=${status}`
-      : '/api/admin/instances'
-    const response = await fetch(fresh(url), { cache: 'no-store' })
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}))
-      return { data: null, error: new Error(err.error || `HTTP ${response.status}`) }
-    }
-    return { data: await response.json(), error: null }
-  } catch (err) {
-    return { data: null, error: err instanceof Error ? err : new Error('Network error') }
-  }
-}
-
-// --- Admin-facing: delete instance ---
-
-export async function deleteInstance(
-  instanceId: number
-): Promise<{ success: boolean; error: Error | null }> {
-  try {
-    const response = await fetch(`/api/admin/instances/${instanceId}`, {
-      method: 'DELETE',
-    })
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}))
-      return { success: false, error: new Error(err.error || `HTTP ${response.status}`) }
-    }
-    return { success: true, error: null }
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err : new Error('Network error') }
-  }
-}
+export const deleteInstance = (instanceId: number) =>
+  adminAction(`/api/admin/instances/${instanceId}`, 'DELETE')

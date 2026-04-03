@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -9,6 +9,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -175,10 +176,10 @@ export default function StopList({
   onReorder,
 }: StopListProps) {
   const [localStops, setLocalStops] = useState(stops)
+  const draggingRef = useRef(false)
 
   // Sync when parent stops change (from polling or refresh)
-  if (stops !== localStops && !isDraggingRef()) {
-    // Only sync if the stop IDs/order actually changed
+  if (stops !== localStops && !draggingRef.current) {
     const parentIds = stops.map((s) => s.id).join(',')
     const localIds = localStops.map((s) => s.id).join(',')
     if (parentIds !== localIds || stopsDataChanged(stops, localStops)) {
@@ -200,7 +201,12 @@ export default function StopList({
     })
   )
 
+  const handleDragStart = (_event: DragStartEvent) => {
+    draggingRef.current = true
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
+    draggingRef.current = false
     const { active, over } = event
 
     if (over && active.id !== over.id) {
@@ -290,6 +296,7 @@ export default function StopList({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -311,12 +318,6 @@ export default function StopList({
       </div>
     </div>
   )
-}
-
-// Helpers to avoid overwriting local reorder with stale polling data
-let _isDragging = false
-function isDraggingRef() {
-  return _isDragging
 }
 
 function stopsDataChanged(a: StopWithStatus[], b: StopWithStatus[]): boolean {

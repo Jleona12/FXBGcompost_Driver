@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import PasswordGate from './PasswordGate'
-import AdminHeader from './AdminHeader'
+import Header from '@/components/Header'
 import { Loader2, LayoutDashboard, Users, Route, ClipboardCheck, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -73,7 +73,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // Authenticated - show admin layout
   return (
     <div className="min-h-screen bg-ios-bg-secondary">
-      <AdminHeader />
+      <Header variant="admin" />
 
       {/* Navigation Bar */}
       <nav className="bg-white border-b border-ios-separator sticky top-[57px] z-40">

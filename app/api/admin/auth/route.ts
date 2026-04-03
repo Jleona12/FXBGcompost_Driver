@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { createSessionToken, verifySessionToken } from '@/lib/auth'
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
 
@@ -8,6 +9,7 @@ if (!ADMIN_PASSWORD) {
     'ADMIN_PASSWORD environment variable is required. Set it in your .env.local file.'
   )
 }
+
 const COOKIE_NAME = 'admin_auth'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
@@ -30,9 +32,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Set auth cookie
+    const token = createSessionToken(COOKIE_MAX_AGE)
+
     const cookieStore = await cookies()
-    cookieStore.set(COOKIE_NAME, 'authenticated', {
+    cookieStore.set(COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -51,7 +54,6 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE() {
-  // Logout - clear the cookie
   const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)
 
@@ -59,11 +61,10 @@ export async function DELETE() {
 }
 
 export async function GET() {
-  // Check if authenticated
   const cookieStore = await cookies()
   const authCookie = cookieStore.get(COOKIE_NAME)
 
-  if (authCookie?.value === 'authenticated') {
+  if (authCookie && verifySessionToken(authCookie.value)) {
     return NextResponse.json({ authenticated: true })
   }
 

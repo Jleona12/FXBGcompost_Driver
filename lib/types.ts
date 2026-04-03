@@ -13,15 +13,6 @@ export interface Customer {
   notes?: Record<string, any>  // jsonb
 }
 
-export interface MessageState {
-  id: number
-  customer_id: string
-  message_type: string
-  sent_at?: string
-  status: string
-  metadata?: Record<string, any>
-}
-
 // --- V2: Templates ---
 
 export interface RouteTemplate {
@@ -148,12 +139,5 @@ export interface PickupEventWithDetails extends PickupEvent {
     stop_type: string
     customer: Customer
     instance: RouteInstance
-  }
-  // Legacy fallback for old pickup events that reference the V1 schema
-  stop?: {
-    id: number
-    stop_order: number
-    stop_type?: string
-    customer: Customer
   }
 }
